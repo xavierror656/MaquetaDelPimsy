@@ -1,0 +1,177 @@
+﻿PENDIENTE POR CAMBIOS EN APLICACION,,,
+IPH Justicia Civica,,,
+N°,Campo,Posible tabla secundaria,Descripcion
+,no_referencia,,
+,no_folio_sistema,,
+,PD_fecha,,
+,PD_hora,,
+,PD_no_expediente,,
+,PD_anexoa_detencion(es),,Define SI / NO existe anexo
+,PD_anexoa_cantidad,,Indicar la cantidad de Anexo A a entregar
+,PD_anexob_vehiculos,,Define SI / NO existe anexo
+,PD_anexob_cantidad,,Indicar la cantidad de Anexo B a entregar
+,PD_sin_anexos,,Definir en caso de no existir ningun anexo
+,PD_no_emplado_busqueda,,Numero de empleado del elemento realizo la puesta a disposicion
+,PD_ap_empleado_realizo,DPP Datos de Personal de Policia,Apellido paterno de elemento realizo la puesta a disposicion
+,PD_am_empleado_realizo,DPP Datos de Personal de Policia,Apellido materno de elemento realizo la puesta a disposicion
+,PD_nombre_empleado_realizo,DPP Datos de Personal de Policia,Nombre de elemento realizo la puesta a disposicion
+,PD_institucion_pertenece,DPP Datos de Personal de Policia,Seleccion entr algunas instituciones a cual pertenece el elemento que realiza la puesta a disposicion
+,PD_institucion_pertenece_otra,,"En caso de no estar la institucion deseada del elemento, aqui se escribe de manera abierta"
+,PD_cargo_empleado_realizo,DPP Datos de Personal de Policia,Cargo del elemento realizo la puesta a disposicion
+,PD_unidad_arribo,DPP Datos de Personal de Policia,Numero asignado al vehiculo en el que llego el primer respondiente
+,PD_no_aplica_empleado,,En caso de que no se cuente o no exista alguna puesta a disposicion
+,PD_autoridad_recibe,,Ya viene establecido el dato del campo con FISCALIA CIVICA
+,PD_adscripcion_autoridad_recibe,,Se selecciona el distrito correspondiente donde esta el juez civico que recibe
+,PD_cargo_autoridad_recibe,,Ya viene establecido el dato del campo con FISCAL CIVICO
+,PD_firma_autoridad_recibe,,Campo de busqueda por nombre o numero de empleado del fiscal civico
+,PI_comision_infraccion,,Indica (SI / NO) si el Probable Infractor tuvo presencia directa en la comision de la probable infraccion
+,PI_queja,,Indica (Si / NO) existe una queja o peticion de parte
+,PI_llamada_emergencia,,Indica (SI / NO) si existio una llamada de emergencia
+,PI_no_llamada_emergencia,,"Campo abierto para ingresar en caso de contar con él, el numero de reporte del 911"
+,PI_otro,,Campo abierto para agregar algun otro dato no especificado anteriormente
+,LI_calle_carretera,,Calle o carretera del lugar de la  intervecion
+,LI_no_ext,,"Si aplica, numero exterior de domicilio de la intervencion"
+,LI_no_int,,"Si aplica, numero interior de domicilio  de la intervencion"
+,LI_cp,,Codigo postal del lugar de la intervencion
+,LI_colonia,,Colonia o localidad del lugar  de la intervencion
+,LI_municipio,,Municipio del lugar  de la intervencion
+,LI_entidad,,Entidad  de la intervencion
+,LI_referencia,,Datos de referencia que ayuden a ubicar el lugar  de la intervencion
+,LI_lat,,Datos de la latitud del lugar  de la intervencion
+,LI_long,,Datos de la longitud del lugar  de la intervencion
+,NH_narrativa,,Relato cronológicamente de las acciones realizadas durante su intervención desde el conocimiento del hecho hasta la puesta a disposición
+,SECC.ANEXO A (PERSONA DETENIDA),,
+,AA_detenido,,
+,AA_rnd,,Identificador unico del Registro Nacional de Detenidos
+,AA_fecha_detencion,,Fecha de la detencion
+,AA_hora_detencion,,Hora de la detencion
+,AA_ap_detenido,,Apellido paterno del detenido
+,AA_am_detenido,,Apellido materno del detenido
+,AA_nombre_detenido,,Nombre del detenido
+,AA_alias_detenido,,Alias del detenido en caso de contar con ello
+,AA_no_aplica,,? (probablmente seria que no cuenta con alias)
+,AA_nacionalidad_detenido,,Identifica si el detenido es Mexicano o Extranjero
+,AA_lugar_nacionalidad_detenido,,Se especifica la nacionalidad del detenido en caso de ser extranjero
+,AA_sexo_detenido,,Identifica si es Hombre o Mujer
+,AA_fnac_detenido,,Fecha de nacimiento del detenido
+,AA_domicilio_calle_carretera_detenido,,Calle o carretera del domicilio del detenido
+,AA_domicilio_no_ext_detenido,,"Si aplica, numero exterior del domicilio del detenido"
+,AA_domicilio_no_int_detenido,,"Si aplica, numero interior del domicilio del detenido"
+,AA_domicilio_cp_detenido,,Codigo postal del domicilio del detenido
+,AA_domicilio_colonia_detenido,,Colonia o localidad del domicilio del detenido
+,AA_domicilio_municipio_detenido,,Municipio del domicilio del detenido
+,AA_domicilio_entidad_detenido,,Entidad del domicilio del detenido
+,AA_domicilio_referencia_detenido,,Datos de referencia que ayuden a ubicar el domicilio del detenido
+,AA_descripcion_detenido,,"Campo para describir brevemente la persona detenida, incluyendo vestimenta y rasgos fisicos"
+,AA_lesiones_detenido,,Especifica unicamente (Si / No) cuenta con lesiones
+,AA_padecimiento_detenido,,Especifica unicamente (Si / No) cuenta con algun padecimiento
+,AA_tipo_padecimiento,,Campo abierto que en caso de contar con padecimiento aqui ya se especifica cual padecimiento
+,AA_grupo_vulnerable_detenido,,Especifica unicamente (Si / No) pertenece a algun grupo vulnerable
+,AA_cual_grupo_vulnerable,,Campo abierto que en caso de pertencer a algun grupo vulnerable aqui ya se especifica cual
+,AA_autoridad_traslado,,Campo abierto para indicar a que autoridad administrativa se traslado a la persona detenida
+,PR_ap_empleado_realizo,Datos del primer respondiente solo si es diferente a quien firmo,Apellido paterno de elemento que es primer respondiente
+,PR_am_empleado_realizo,,Apellido materno de elemento que es primer respondiente
+,PR_nombre_empleado_realizo,,Nombre del elemento que es primer respondiente
+,PR_institucion_pertenece,,Seleccion de la institucion a la que pertenece el primer respondiente
+,PR_cargo_empleado,,Cargo de elemento que es primer respondiente
+,SECC.ANEXO B (VEHICULOS),,
+,AB_vehiculo,,Dato numerico para indicar el vehiculo
+,AB_fecha_inspeccion,,
+,AB_hora_inspeccion,,
+,AB_tipo,,Campo seleccion (Terrestre / Otro)
+,AB_tipo_otro,,En caso de seleccionar otro se indica en campo abierto que tipo de vehiculo es
+,AB_procedencia,,Campo seleccion (Nacional / Extranjero)
+,AB_marca_veh,,
+,AB_submarca_veh,,
+,AB_modelo_veh,,
+,AB_color_veh,,
+,AB_uso_veh,,Campo de seleccion (Particular / Transporte publico / carga)
+,AB_plABa_veh,,
+,AB_serie_veh,,
+,AB_observABiones,,Campo abierto para indicar observaciones de la inspeccion del vehiculo
+,AB_destino,,Campo abierto para indicar si el vehiculo sera trasladado y a donde
+,PR_ap_empleado_realizo,Datos del primer respondiente solo si es diferente a quien firmo,Apellido paterno de elemento que es primer respondiente
+,PR_am_empleado_realizo,,Apellido materno de elemento que es primer respondiente
+,PR_nombre_empleado_realizo,,Nombre del elemento que es primer respondiente
+,PR_institucion_pertenece,,Seleccion de la institucion a la que pertenece el primer respondiente
+,PR_cargo_empleado,,Cargo de elemento que es primer respondiente
+,SECC.ANEXO (USO DE LA FUERZA),,
+,AUF_lesionados_autoridad,,Indica si hay autoridades lesionadas
+,AUF_cant_lesionados_autoridad,,Se indica la cantidad de autoridades lesionadas
+,AUF_lesionados_personas,,Indica si hay personas lesionadas
+,AUF_cant_lesionados_personas,,Se indica la cantidad de personas lesionadas
+,AUF_fallecidos_autoridad,,Indica si hay autoridades fallecidas
+,AUF_cant_fallecidos_autoridad,,Se indica la cantidad de autoridades fallecidas
+,AUF_fallecidos_personas,,Indica si hay personas fallecidas
+,AUF_cant_fallecidos_personas,,Se indica la cantidad de personas fallecidas
+,AUF_tipo_uso_fuerza,,Seleccion segun corresponda (Reduccion fisica de movimientos / Utilizacion de arma incapacitante / Utilizacion de arma de fuego)
+,AUF_descripcion,,Campo abierto para describir las conductas que motivaron al uso de la fuerza
+,AUF_asistencia_medica,,Indica (SI / NO) se solicito asistencia medica
+,AUF_descripcion_am,,"Campo abierto para explicar porque se brindo o solicito la asistencia medica, en su defecto pudiera se tambien porque no se realizo"
+,PR_no_empleado,,Campo para busqueda por numero de empleado o nombre
+,PR_nombre_empleado_realizo,Datos del primer respondiente solo si es diferente a quien firmo la puesta a disposicion,
+,PR_ap_empleado_realizo,,
+,PR_am_empleado_realizo,,
+,PR_cargo_empleado,,
+,PR_institucion_pertenece,,
+,SECC.ANEXO (INVENTARIO ARMAS Y OBJETOS),,
+,AIAO_id_arma,,
+,AIAO_aportacion_inspeccion_arma,,Campo de seleccion (Aportacion / Lugar / Persona / Vehiculo)
+,AIAO_ubicacion_arma,,
+,AIAO_tipo_arma,,Campo de seleccion (Corta / Larga)
+,AIAO_calibre_arma,,
+,AIAO_color_arma,,
+,AIAO_Matricula_arma,,
+,AIAO_serie_arma,,
+,AIAO_observaciones_arma,,
+,AIAO_destino_arma,,
+,AIAO_ap_aseguro_arma,,
+,AIAO_am_aseguro_arma,,
+,AIAO_nombre_aseguro_arma,,
+,AIAO_ap_testigo1_arma,,
+,AIAO_am_testigo1_arma,,
+,AIAO_nombre_testigo1_arma,,
+,AIAO_ap_testigo2_arma,,
+,AIAO_am_testigo2_arma,,
+,AIAO_nombre_testigo2_arma,,
+,AIAO_id_sustancia,,
+,AIAO_sustancia,,Campo de seleccion (Narcotico / Hidrocarburo / Numerario / Otro)
+,AIAO_sustancia_otro,,Campo abierto para especificar otro tipo de sustancia no contemplada en AD_sustancia
+,AIAO_aportacion_inspeccion_sustancia,,Campo de seleccion (Aportacion / Lugar / Persona / Vehiculo)
+,AIAO_ubicacion_sustancia,,
+,AIAO_descripcion_sustancia,,Campo abierto para ingresar una breve descripcion de la sustancia
+,AIAO_destino_sustancia,,Campo abierto para ingresar el destino de la sustancia
+,AIAO_ap_aseguro_sustancia,,
+,AIAO_am_aseguro_sustancia,,
+,AIAO_nombre_aseguro_sustancia,,
+,AIAO_ap_testigo1_sustancia,,
+,AIAO_am_testigo1_sustancia,,
+,AIAO_nombre_testigo1_sustancia,,
+,AIAO_ap_testigo2_sustancia,,
+,AIAO_am_testigo2_sustancia,,
+,AIAO_nombre_testigo2_sustancia,,
+,AIAO_id_objeto,,
+,AIAO_objeto,,
+,AIAO_objeto_otro,,
+,AIAO_aportacion_inspeccion_objeto,,
+,AIAO_ubicacion_objeto,,
+,AIAO_descripcion_objeto,,
+,AIAO_destino_objeto,,
+,AIAO_ap_aseguro_objeto,,
+,AIAO_am_aseguro_objeto,,
+,AIAO_nombre_aseguro_objeto,,
+,AIAO_ap_testigo1_objeto,,
+,AIAO_am_testigo1_objeto,,
+,AIAO_nombre_testigo1_objeto,,
+,AIAO_ap_testigo2_objeto,,
+,AIAO_am_testigo2_objeto,,
+,AIAO_nombre_testigo2_objeto,,
+,SECC.ANEXO (RECORRIDO),,
+,AR_traslado,,Campo de seleccion (Fiscalia / Hospital / Otra dependencia)
+,AR_traslado_otro,,Campo abierto para agregar la dependencia o lugar de traslado si se selecciono Otra dependencia
+,AR_observaciones,,Observaciones relacionadas a la detencion
+,PR_ap_empleado_realizo,,
+,PR_am_empleado_realizo,,
+,PR_nombre_empleado_realizo,,
+,PR_institucion_pertenece,,
+,PR_cargo_empleado,,

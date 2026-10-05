@@ -1,0 +1,13 @@
+﻿#,Pregunta,Opciones,Recomendación,"Ver filtro ""¿Requiere decisión?"" en Mapeo por campo"
+1,"¿SIPROB ya captura atención médica, lesiones, padecimiento, grupos, familiar y pertenencias del detenido?",Sí: se referencia. No: se capturan en PIMSy con acceso restringido.,Verificar con el equipo de SIPROB antes de crear entidades nuevas.,
+2,¿Dónde va el dinero?,Objeto especial (v1.0) o sustancia (IPH).,"Objeto especial; derivar ""numerario"" para el IPH.",
+3,¿Catálogo único de armas y sustancias?,Mantener ambos o unificar.,Unificar con jerarquía; el IPH deriva su clasificación.,
+4,¿Testigos como persona maestra o dato libre?,Persona maestra / texto libre.,"Texto libre estructurado (nombre y apellidos), salvo que se necesite reincidencia.",
+5,"¿Inspección, preservación y riesgo del lugar son del IPH o del evento?",IPH / evento.,"IPH, porque lo piden solo los IPH de delitos.",
+6,¿Se registran vehículos inspeccionados que no se aseguran?,Sí / no.,"Sí, con bandera de inspección.",
+7,¿Cómo se registran agentes de otra institución?,Catálogo externo / texto libre.,"Texto libre con institución, ya que MongoDB solo trae agentes SSPM.",
+8,¿El anexo de uso de la fuerza del IPH se toma del informe?,Derivar / recapturar.,Derivar del informe de uso de la fuerza.,
+9,¿Fecha y hora de conocimiento y de arribo vienen de CERI?,Importar / capturar.,Importar del reporte cuando exista; capturar como respaldo.,
+10,¿La marca de documentación complementaria se captura mientras no existan adjuntos?,Sí / no.,"Sí, como casilla manual.",
+11,¿Cuál es la lista vigente de campos IPH?,Aplicación actual / formato oficial homologado.,Mapear contra el formato oficial y usar la aplicación como contraste.,
+12,"¿La clasificación de la intervención (falta, presunto delito, emergencia) se captura o se deriva?",Capturar al abrir / derivar de lo agregado.,Derivar y dejar el motivo de CERI como campo aparte.,

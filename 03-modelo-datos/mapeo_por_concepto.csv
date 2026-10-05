@@ -1,0 +1,153 @@
+﻿Entidad PIMSy,Atributo canónico,Tratamiento principal,Parte Informativa,IPH Delitos,IPH Faltas,Formularios que lo piden,Campos en total
+EVENTO,agrupamiento que atiende,Captura propia,1: Distrito_o_Agrupamiento,,,1,1
+EVENTO,clasificación de la intervención (falta / presunto delito / emergencia),Por definir,1: Motivo_de_intervencion,,,1,1
+EVENTO,fecha y hora de arribo,Por definir,,"2: CH_fecha_arribo, CH_hora_arribo",,1,2
+EVENTO,fecha y hora de conocimiento del hecho,Por definir,,"2: CH_fecha, CH_hora",,1,2
+EVENTO,fecha_evento,Captura propia,1: Fecha_del_evento,,,1,1
+EVENTO,folio_ceri,Captura propia,1: Folio_CERI,,,1,1
+EVENTO,folio_ceri / llamada de emergencia,Derivado de otro registro,,,"2: PI_llamada_emergencia, PI_no_llamada_emergencia",1,2
+EVENTO,hora_evento,Captura propia,1: Hora_del_evento,,,1,1
+EVENTO,indicador derivado (hubo …),Calculado / autogenerado,"7: Hubo_Quejoso, Hubo_Persona_Detenidas, Hubo_Víctima …",,,1,7
+EVENTO,medio_conocimiento,Captura propia,1: Atendida_por_medio_de,1: CH_entero_hecho,,2,2
+EVENTO,narrativa,Captura propia,1: Narrativa,,,1,1
+EVENTO,narrativa (IPH aporta la suya solo si hay más de un IPH),Derivado de otro registro,,1: NH_narrativa,1: NH_narrativa,2,2
+EVENTO,turno,Calculado / autogenerado,1: Turno,,,1,1
+UBICACION,URL del mapa,Calculado / autogenerado,,1: LI_url_maps,,1,1
+UBICACION,calle / domicilio del evento,Captura propia,1: Domicilio,,,1,1
+UBICACION,colonia (catálogo),Captura propia,1: Colonia,,,1,1
+UBICACION,cruce_1,Captura propia,1: Cruce_calle_1,,,1,1
+UBICACION,cruce_2,Captura propia,1: Cruce_calle_2,,,1,1
+UBICACION,código postal,Captura propia,1: Codigo_postal,,,1,1
+UBICACION,distrito,Calculado / autogenerado,1: Distrito_evento,,,1,1
+UBICACION,latitud,Captura propia,1: Latitud,,,1,1
+UBICACION,longitud,Captura propia,1: Longitud,,,1,1
+UBICACION,sector,Calculado / autogenerado,1: Sector_evento,,,1,1
+UBICACION,ubicación del evento,Derivado de otro registro,,"9: LI_calle_carretera, LI_no_ext, LI_no_int …","10: LI_calle_carretera, LI_no_ext, LI_no_int …",2,19
+AGENTE_INVOLUCRADO,distrito,Snapshot de agente (MongoDB),1: DPP_Distrito,,,1,1
+AGENTE_INVOLUCRADO,elementos que arribaron en la unidad,Calculado / autogenerado,,"2: PR_arribo_mas_elementos, PR_arribo_cuantos",,1,2
+AGENTE_INVOLUCRADO,institución externa,Por definir,,,1: PD_institucion_pertenece_otra,1,1
+AGENTE_INVOLUCRADO,nombre,Snapshot de agente (MongoDB),1: DPP_Nombre,,,1,1
+AGENTE_INVOLUCRADO,número de empleado,Snapshot de agente (MongoDB),1: Num_Elemento_I,,,1,1
+AGENTE_INVOLUCRADO,puesto,Snapshot de agente (MongoDB),1: DPP_Puesto,,,1,1
+AGENTE_INVOLUCRADO,rol: asegura el bien,Snapshot de agente (MongoDB),,"9: AD_ap_aseguro_arma, AD_am_aseguro_arma, AD_nombre_aseguro_arma …","9: AIAO_ap_aseguro_arma, AIAO_am_aseguro_arma, AIAO_nombre_aseguro_arma …",2,18
+AGENTE_INVOLUCRADO,rol: primer respondiente,Snapshot de agente (MongoDB),,"7: PR_no_emplado_busqueda, PR_nombre_empleado_realizo, PR_ap_empleado_realizo …",,1,7
+AGENTE_INVOLUCRADO,rol: primer respondiente (repetición en anexo),Derivado de otro registro,,"16: PR_no_emplado_busqueda, PR_ap_empleado_realizo, PR_am_empleado_realizo …","21: PR_ap_empleado_realizo, PR_am_empleado_realizo, PR_nombre_empleado_realizo …",2,37
+AGENTE_INVOLUCRADO,rol: realiza la puesta a disposición,Snapshot de agente (MongoDB),,"6: PD_no_emplado_busqueda, PD_nombre_empleado_realizo, PD_ap_empleado_realizo …","7: PD_no_emplado_busqueda, PD_ap_empleado_realizo, PD_am_empleado_realizo …",2,13
+AGENTE_INVOLUCRADO,rol: responsable de turno (nombre),Snapshot de agente (MongoDB),1: DPP_Nombre_Responsable,,,1,1
+AGENTE_INVOLUCRADO,rol: responsable de turno (número de empleado),Snapshot de agente (MongoDB),1: Num_Elemento_R,,,1,1
+AGENTE_INVOLUCRADO,unidad,Snapshot de agente (MongoDB),1: DPP_Unidad,,,1,1
+PERSONA + PARTICIPACION,edad al momento del evento,Captura propia,"3: DPQOV_Edad, DPV_Edad, DPR_Edad",,,1,3
+PERSONA + PARTICIPACION,nombre (quejoso / ofendido / víctima),Captura propia,1: DPQOV_Nombre,,,1,1
+PERSONA + PARTICIPACION,nombre y apellidos (resguardada),Captura propia,"3: DPR_Nombre, DPR_Apellido_Paterno, DPR_Apellido_Materno",,,1,3
+PERSONA + PARTICIPACION,nombre y apellidos (víctima),Captura propia,"3: DPV_Nombre, DPV_Apellido_Paterno, DPV_Apellido_Materno",,,1,3
+PERSONA,domicilio,Captura propia,1: DPV_Domicilio,,,1,1
+PERSONA,domicilio estructurado,Captura propia,"7: DPQOV_Domicilio, DPQOV_No_Exterior, DPQOV_No_Interior …",,,1,7
+PERSONA,ocupación,Captura propia,1: DPR_Ocupacion,,,1,1
+PERSONA,origen (país / estado / ciudad),Captura propia,"6: DPQOV_Pais_Origen, DPQOV_Estado_Origen, DPQOV_Ciudad_Origen …",,,1,6
+PERSONA,sexo,Captura propia,"3: DPQOV_Sexo, DPV_Sexo, DPR_Sexo",,,1,3
+PERSONA,teléfono,Captura propia,1: DPR_Telefono,,,1,1
+PERSONA (detenido),documento de identificación,Referencia SIPROB,,"3: AA_identificacion_detenido, AA_identificacion_otro_detenido, AA_no_identificacion_detenido",,1,3
+PERSONA (detenido),domicilio,Referencia SIPROB,1: DPD_Domicilio,"8: AA_domicilio_calle_carretera_detenido, AA_domicilio_no_ext_detenido, AA_domicilio_no_int_detenido …","8: AA_domicilio_calle_carretera_detenido, AA_domicilio_no_ext_detenido, AA_domicilio_no_int_detenido …",3,17
+PERSONA (detenido),edad al momento del evento,Calculado / autogenerado,1: DPD_Edad,1: AA_edad_detenido,,2,2
+PERSONA (detenido),fecha de nacimiento,Referencia SIPROB,1: DPD_Fecha_Nacimiento,,,1,1
+PERSONA (detenido),nacionalidad,Referencia SIPROB,,"2: AA_nacionalidad_detenido, AA_lugar_nacionalidad_detenido","2: AA_nacionalidad_detenido, AA_lugar_nacionalidad_detenido",2,4
+PERSONA (detenido),nombre y apellidos,Referencia SIPROB,"3: DPD_Nombre, DPD_Apellido_Paterno, DPD_Materno",,,1,3
+PERSONA (detenido),"nombre, apellidos y alias",Referencia SIPROB,,"4: AA_ap_detenido, AA_am_detenido, AA_nombre_detenido …","4: AA_ap_detenido, AA_am_detenido, AA_nombre_detenido …",2,8
+PERSONA (detenido),origen (país / estado / ciudad),Referencia SIPROB,"3: DPD_Pais_Origen, DPD_Estado_Origen, DPD_Ciudad_Origen",,,1,3
+PERSONA (detenido),sexo,Referencia SIPROB,1: DPD_Sexo,,,1,1
+PERSONA (detenido),sexo y fecha de nacimiento,Referencia SIPROB,,"2: AA_sexo_detenido, AA_fnac_detenido","2: AA_sexo_detenido, AA_fnac_detenido",2,4
+PART_VICTIMA,canalización y atenciones (legal / psicológica / médica),Captura propia,"6: DPV_Requirio_Canalizacion, DPV_Atencion_Legal, DPV_Otro_AL …",,,1,6
+PART_VICTIMA,etnia (catálogo / otro),Captura propia,"2: DPV_Etnia, DPV_Especifique",,,1,2
+RESGUARDO,motivo y lugar de resguardo,Captura propia,"3: DPR_Motivo, DPR_Intitucion, DPR_Especifique_Institucion",,,1,3
+DETENIDO,atención médica (se brindó / dónde / especificar),Por definir,"3: DPD_AM_Se_Brinda_Atencion_Medica_Lugar, DPD_AM_Donde_Recicbio_AM, DPD_AM_Especifique",,,1,3
+DETENIDO,campo sin descripción clara,Por definir,,1: AA_no_aplica,1: AA_no_aplica,2,2
+DETENIDO,"condición al momento de la detención (descripción, lesiones, padecimiento, grupos)",Por definir,,"9: AA_descripcion_detenido, AA_lesiones_detenido, AA_padecimiento_detenido …","6: AA_descripcion_detenido, AA_lesiones_detenido, AA_padecimiento_detenido …",2,15
+DETENIDO,fecha y hora de detención,Referencia SIPROB,,"2: AA_fecha_detencion, AA_hora_detencion","2: AA_fecha_detencion, AA_hora_detencion",2,4
+DETENIDO,identificador del Registro Nacional de Detenidos,Referencia SIPROB,,1: AA_rnd,1: AA_rnd,2,2
+DETENIDO,lectura de derechos,Captura propia,,1: AA_lectura_derechos,,1,1
+DETENIDO,marcador de bloque,Calculado / autogenerado,,1: AA_detenido,1: AA_detenido,2,2
+DETENIDO,traslado (destino y observaciones),Captura propia,,"3: AA_traslado_detenido, AA_dependencia_traslado, AA_observaciones","4: AA_autoridad_traslado, AR_traslado, AR_traslado_otro …",2,7
+DETENCION,lugar de detención (si es distinto al evento),Derivado de otro registro,,"8: AA_calle_carretera_detenido, AA_no_ext_detenido, AA_no_int_detenido …",,1,8
+DETENCION,lugar de detención igual al de intervención,Calculado / autogenerado,,1: AA_lugar_detencion,,1,1
+DELITO,consecutivo,Calculado / autogenerado,,1: NH_CH_no_delito,,1,1
+DELITO,delito / subdelito / violencia / modalidad,Captura propia,,"4: NH_CH_delito, NH_CH_subdelito, NH_CH_violencia …",,1,4
+DELITO,delito asociado a la víctima,Captura propia,1: DPV_Delito,,,1,1
+IPH,autoridad destino,Derivado de otro registro,1: DPD_SJ_Presentado_ante,,,1,1
+IPH,autoridad receptora (fiscalía cívica / fiscal cívico),Derivado de otro registro,,,"4: PD_autoridad_recibe, PD_adscripcion_autoridad_recibe, PD_cargo_autoridad_recibe …",1,4
+IPH,cantidad de anexos por tipo,Calculado / autogenerado,,,"2: PD_anexoa_cantidad, PD_anexob_cantidad",1,2
+IPH,circunstancias de la infracción,Captura propia,,,"2: PI_comision_infraccion, PI_otro",1,2
+IPH,fecha de puesta a disposición,Captura propia,,1: PD_fecha,1: PD_fecha,2,2
+IPH,folio de referencia,Captura propia,,1: no_referencia,1: no_referencia,2,2
+IPH,folio de sistema,Calculado / autogenerado,,1: no_folio_sistema,1: no_folio_sistema,2,2
+IPH,fuero,Derivado de otro registro,1: DPD_SJ_Fuero,,,1,1
+IPH,hora de puesta a disposición,Captura propia,,1: PD_hora,1: PD_hora,2,2
+IPH,"inspección, preservación y riesgo del lugar",Captura propia,,"6: LI_inspeccion, LI_inspeccion_positiva, LI_preservacion …",,1,6
+IPH,lista de anexos que acompañan,Calculado / autogenerado,,"8: PD_anexoa_detencion(es), PD_anexob_uso_fuerza, PD_anexoc_inspeccion_veh …","3: PD_anexoa_detencion(es), PD_anexob_vehiculos, PD_sin_anexos",2,11
+IPH,número de expediente,Captura propia,,1: PD_no_expediente,1: PD_no_expediente,2,2
+IPH,número de remisión,Captura propia,,1: no_remision,,1,1
+IPH,sin puesta a disposición,Por definir,,,1: PD_no_aplica_empleado,1,1
+AUTORIDAD_RECEPTORA,fiscal que recibe (nombre / cargo / adscripción),Captura propia,,"5: PD_fiscal_ap, PD_fiscal_am, PD_fiscal_nombre …",,1,5
+USO_FUERZA,cantidad de lesionados / fallecidos,Captura propia,,"4: AB_cant_lesionados_autoridad, AB_cant_lesionados_personas, AB_cant_fallecidos_autoridad …","4: AUF_cant_lesionados_autoridad, AUF_cant_lesionados_personas, AUF_cant_fallecidos_autoridad …",2,8
+USO_FUERZA,declaración de uso de la fuerza,Captura propia,1: Hizo_uso_de_la_fuerza,,,1,1
+USO_FUERZA,descripción y asistencia médica,Derivado de otro registro,,"3: AB_descripcion, AB_asistencia_medica, AB_descripcion_am","3: AUF_descripcion, AUF_asistencia_medica, AUF_descripcion_am",2,6
+USO_FUERZA,indicador de lesionados / fallecidos,Calculado / autogenerado,,"4: AB_lesionados_autoridad, AB_lesionados_personas, AB_fallecidos_autoridad …","4: AUF_lesionados_autoridad, AUF_lesionados_personas, AUF_fallecidos_autoridad …",2,8
+USO_FUERZA,nivel / tipo de uso de la fuerza,Derivado de otro registro,,1: AB_tipo_uso_fuerza,1: AUF_tipo_uso_fuerza,2,2
+USO_FUERZA,vínculo parte–informe de uso de la fuerza,Derivado de otro registro,1: Folio_IUF,,,1,1
+ASEGURAMIENTO,consecutivo del bien,Calculado / autogenerado,,"3: AD_id_arma, AD_id_sustancia, AD_id_objeto","3: AIAO_id_arma, AIAO_id_sustancia, AIAO_id_objeto",2,6
+ASEGURAMIENTO,indicador derivado (hubo aseguramiento de objetos),Calculado / autogenerado,1: sector_evento,,,1,1
+ASEGURAMIENTO,procedencia del hallazgo (aportación / lugar / persona / vehículo),Captura propia,,"3: AD_aportacion_inspeccion_arma, AD_aportacion_inspeccion_sustancia, AD_aportacion_inspeccion_objeto","3: AIAO_aportacion_inspeccion_arma, AIAO_aportacion_inspeccion_sustancia, AIAO_aportacion_inspeccion_objeto",2,6
+ASEGURAMIENTO,se encontró objeto relacionado,Derivado de otro registro,,1: AA_objeto_retenido,,1,1
+ASEGURAMIENTO,se localizaron objetos,Derivado de otro registro,,1: AC_objetos,,1,1
+ASEGURAMIENTO,ubicación del hallazgo,Captura propia,,"3: AD_ubicacion_arma, AD_ubicacion_sustancia, AD_ubicacion_objeto","3: AIAO_ubicacion_arma, AIAO_ubicacion_sustancia, AIAO_ubicacion_objeto",2,6
+ARMA,calibre (solo fuego),Captura propia,1: AA_Calibre,,,1,1
+ARMA,calibre / color / matrícula / serie,Captura propia,,"4: AD_calibre_arma, AD_color_arma, AD_Matricula_arma …","4: AIAO_calibre_arma, AIAO_color_arma, AIAO_Matricula_arma …",2,8
+ARMA,cantidad,Captura propia,1: AA_Cantidad,,,1,1
+ARMA,clasificación (fuego / blanca / explosiva / otro),Captura propia,1: AA_Clasificacion_del_Arma,,,1,1
+ARMA,descripción,Captura propia,1: AA_Descripcion,,,1,1
+ARMA,"nombre (revólver, pistola, rifle…)",Captura propia,1: AA_Nombre_Arma,,,1,1
+ARMA,observaciones y destino,Captura propia,,"2: AD_observaciones_arma, AD_destino_arma","2: AIAO_observaciones_arma, AIAO_destino_arma",2,4
+ARMA,tipo (corta / larga / cargador / cartuchos / navaja…),Captura propia,1: AA_Tipo_de_Arma,,,1,1
+ARMA,tipo (corta / larga),Captura propia,,1: AD_tipo_arma,1: AIAO_tipo_arma,2,2
+SUSTANCIA,cantidad de presentación,Captura propia,1: AS_Cantidad_Presentacion,,,1,1
+SUSTANCIA,cantidad en la unidad elegida,Captura propia,1: AS_Cantidad,,,1,1
+SUSTANCIA,destino,Captura propia,,1: AD_destino_sustancia,1: AIAO_destino_sustancia,2,2
+SUSTANCIA,tipo de sustancia,Captura propia,1: AS_Sustancia,,,1,1
+SUSTANCIA,tipo y descripción,Captura propia,,"3: AD_sustancia, AD_sustancia_otro, AD_descripcion_sustancia","3: AIAO_sustancia, AIAO_sustancia_otro, AIAO_descripcion_sustancia",2,6
+SUSTANCIA,unidad de peso,Captura propia,1: AS_Peso,,,1,1
+SUSTANCIA,"unidad de presentación (envoltorios, dosis…)",Captura propia,1: AS_Unidad_de_Presentacion,,,1,1
+OBJETO,cantidad,Captura propia,1: AO_Cantidad,,,1,1
+OBJETO,tipo de objeto,Captura propia,1: AO_Tipo_de_Objeto,,,1,1
+OBJETO,"tipo, descripción y destino",Captura propia,,"4: AD_objeto, AD_objeto_otro, AD_descripcion_objeto …","4: AIAO_objeto, AIAO_objeto_otro, AIAO_descripcion_objeto …",2,8
+OBJETO,unidad de medida,Captura propia,1: AO_Unidad_Medida,,,1,1
+VEHICULO,color,Captura propia,1: AV_Color,,,1,1
+VEHICULO,consecutivo,Calculado / autogenerado,,1: AC_vehiculo,1: AB_vehiculo,2,2
+VEHICULO,descripción,Captura propia,1: AV_Descripcion_del_Vehiculo,,,1,1
+VEHICULO,destino / lugar de depósito,Captura propia,,1: AC_destino,1: AB_destino,2,2
+VEHICULO,entidad de emplacado,Captura propia,1: AV_Entidad_Emplacado,,,1,1
+VEHICULO,fecha y hora de inspección,Captura propia,,"2: AC_fecha_inspeccion, AC_hora_inspeccion","2: AB_fecha_inspeccion, AB_hora_inspeccion",2,4
+VEHICULO,indicador tiene serie / placa,Calculado / autogenerado,"2: AV_Tiene_Serie, AV_Tiene_Placa",,,1,2
+VEHICULO,lugar de depósito,Captura propia,1: AV_Lugar_de_Deposito,,,1,1
+VEHICULO,marca,Captura propia,1: AV_Marca,,,1,1
+VEHICULO,marca / submarca / modelo / color,Captura propia,,"4: AC_marca_veh, AC_submarca_veh, AC_modelo_veh …","4: AB_marca_veh, AB_submarca_veh, AB_modelo_veh …",2,8
+VEHICULO,modelo,Captura propia,1: AV_Modelo,,,1,1
+VEHICULO,motivo de aseguramiento,Captura propia,1: AV_Motivo_de_Aseguramiento,,,1,1
+VEHICULO,número de serie,Captura propia,1: AV_Serie,1: AC_serie_veh,1: AB_serie_veh,3,3
+VEHICULO,observaciones de la inspección,Captura propia,,1: AC_observaciones,1: AB_observABiones,2,2
+VEHICULO,placas,Captura propia,1: AV_Placa,1: AC_placa_veh,1: AB_plABa_veh,3,3
+VEHICULO,procedencia (nacional / extranjero),Captura propia,,1: AC_procedencia,1: AB_procedencia,2,2
+VEHICULO,situación (con / sin reporte de robo),Captura propia,,1: AC_situacion_veh,,1,1
+VEHICULO,submarca,Captura propia,1: AV_Submarca,,,1,1
+VEHICULO,tipo de vehículo,Captura propia,1: AV_Tipo_de_Vehiculo,1: AC_tipo,1: AB_tipo,3,3
+VEHICULO,tipo de vehículo (otro),Captura propia,,,1: AB_tipo_otro,1,1
+VEHICULO,uso (particular / público / carga),Captura propia,,1: AC_uso_veh,1: AB_uso_veh,2,2
+TESTIGO,testigo del aseguramiento (hasta 2 por bien),Por definir,,"18: AD_ap_testigo1_arma, AD_am_testigo1_arma, AD_nombre_testigo1_arma …","18: AIAO_ap_testigo1_arma, AIAO_am_testigo1_arma, AIAO_nombre_testigo1_arma …",2,36
+PERTENENCIA_DETENIDO,"pertenencia (nombre, descripción, destino)",Por definir,,"2: AA_pertenencia_detenido, AA_destino_pertenencia",,1,2
+PERTENENCIA_DETENIDO,se recolectaron pertenencias,Derivado de otro registro,,1: AA_pertenencias_retenido,,1,1
+CONTACTO_FAMILIAR,familiar de contacto,Por definir,,"5: AA_ap_familiar_detenido, AA_am_familiar_detenido, AA_nombre_familiar_detenido …",,1,5
+LECTURA_DERECHOS_MENOR,folio de referencia,Calculado / autogenerado,,1: ADM_no_referencia,,1,1
+LECTURA_DERECHOS_MENOR,lectura de derechos del menor infractor,Captura propia,,"8: ADM_dependencia, ADM_entidad, ADM_ciudad …",,1,8
+LECTURA_DERECHOS_MENOR,nombre del actuante,Snapshot de agente (MongoDB),,1: ADM_nombre_actuante,,1,1
+LECTURA_DERECHOS_MENOR,nombre del menor,Referencia SIPROB,,1: ADM_nombre_infractor,,1,1
+PARTICIPACION,existe queja o petición de parte,Derivado de otro registro,,,1: PI_queja,1,1
+PARTE_INFORMATIVA,folio,Calculado / autogenerado,1: Folio,,,1,1
+ADJUNTOS,"documentación complementaria (fotos, audio, video, certificado médico)",Fuera de v1,,"7: PD_documentacion_complementaria, PD_dc_fotografia, PD_dc_audio …",,1,7

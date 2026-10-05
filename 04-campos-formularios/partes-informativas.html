@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parte Informativa — Prototipo de Campos</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 14px; }
+    body { font-family: "Segoe UI", system-ui, sans-serif; background: #f0f2f5; color: #1a1a2e; min-height: 100vh; }
+
+    /* TOP BAR */
+    .topbar {
+      background: #1a1a2e; color: #fff; padding: 12px 24px;
+      display: flex; align-items: center; gap: 12px;
+      position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,.35);
+    }
+    .topbar .logo { font-weight: 700; font-size: 1rem; color: #7ec8e3; letter-spacing: .4px; }
+    .topbar .folio-display {
+      background: #0f3460; border: 1px solid #7ec8e3; border-radius: 6px;
+      padding: 4px 12px; font-size: .82rem; font-family: monospace; color: #a8d8ea; margin-left: auto;
+    }
+    .topbar .status-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #fef9c3; border: 1px solid #fde047; color: #854d0e;
+      border-radius: 999px; padding: 3px 10px; font-size: .75rem; font-weight: 600;
+    }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #eab308; }
+    .topbar .btn-export {
+      background: #16213e; border: 1px solid #7ec8e3; color: #7ec8e3;
+      border-radius: 6px; padding: 6px 14px; cursor: pointer; font-size: .82rem;
+    }
+    .topbar .btn-export:hover { background: #0f3460; }
+
+    /* LAYOUT */
+    .container { max-width: 1120px; margin: 0 auto; padding: 20px 14px 100px; }
+
+    /* PROTO NOTICE */
+    .proto-notice {
+      background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px;
+      padding: 10px 16px; font-size: .8rem; color: #92400e; margin-bottom: 18px;
+    }
+
+    /* SECTION CARD */
+    .section-card {
+      background: #fff; border-radius: 10px; border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 4px rgba(0,0,0,.07); margin-bottom: 14px; overflow: hidden;
+    }
+    .section-header {
+      display: flex; align-items: center; gap: 10px; padding: 13px 18px;
+      cursor: pointer; user-select: none; background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0; transition: background .15s;
+    }
+    .section-header:hover { background: #eef2f7; }
+    .section-header .sec-icon { font-size: 1rem; width: 24px; text-align: center; }
+    .section-header h3 { font-size: .92rem; font-weight: 600; color: #1a1a2e; flex: 1; }
+    .section-header .toggle-icon { font-size: .72rem; color: #64748b; }
+    .section-body { padding: 18px; }
+
+    /* GRIDS */
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .col-span-2 { grid-column: span 2; }
+    .col-span-3 { grid-column: span 3; }
+    .col-span-full { grid-column: 1/-1; }
+    @media(max-width:900px){
+      .grid-3,.grid-4 { grid-template-columns: repeat(2,1fr); }
+    }
+    @media(max-width:600px){
+      .grid-2,.grid-3,.grid-4 { grid-template-columns: 1fr; }
+      .col-span-2,.col-span-3,.col-span-full { grid-column: span 1; }
+    }
+
+    /* FIELD GROUP */
+    .field-group { display: flex; flex-direction: column; gap: 4px; }
+    .field-group label {
+      font-size: .74rem; font-weight: 700; color: #475569;
+      text-transform: uppercase; letter-spacing: .4px;
+    }
+    .field-group label .fid { font-size: .66rem; color: #94a3b8; font-weight: 400; font-family: monospace; }
+    .field-group input,
+    .field-group select,
+    .field-group textarea {
+      width: 100%; padding: 7px 9px; border: 1px solid #cbd5e1;
+      border-radius: 6px; font-size: .86rem; color: #1a1a2e; background: #fff;
+      transition: border-color .15s, box-shadow .15s; font-family: inherit;
+    }
+    .field-group input:focus,
+    .field-group select:focus,
+    .field-group textarea:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,.12); }
+    .field-group input[readonly],
+    .field-group input:disabled,
+    .field-group select:disabled { background: #f1f5f9; color: #64748b; cursor: not-allowed; }
+    .field-group textarea { resize: vertical; min-height: 100px; }
+    .field-group .hint { font-size: .7rem; color: #94a3b8; }
+
+    /* SUB TITLES */
+    .sub-title {
+      font-size: .75rem; font-weight: 700; color: #64748b; text-transform: uppercase;
+      letter-spacing: .5px; padding: 6px 0 4px; border-bottom: 1px solid #e2e8f0;
+      margin-bottom: 12px; grid-column: 1/-1;
+    }
+    .sub-label {
+      font-size: .73rem; font-weight: 700; color: #64748b; text-transform: uppercase;
+      letter-spacing: .4px; margin-bottom: 8px; padding: 8px 0 4px;
+      border-top: 1px solid #e2e8f0;
+    }
+    .divider { border: none; border-top: 1px solid #e2e8f0; margin: 16px 0; }
+
+    /* BADGES */
+    .badge { display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: .68rem; font-weight: 700; }
+    .badge-blue   { background: #dbeafe; color: #1d4ed8; }
+    .badge-orange { background: #ffedd5; color: #c2410c; }
+    .badge-purple { background: #f3e8ff; color: #7e22ce; }
+    .badge-green  { background: #dcfce7; color: #15803d; }
+
+    /* WORD COUNTER */
+    .word-counter { font-size: .73rem; padding: 3px 0; }
+    .word-counter.ok   { color: #15803d; font-weight: 600; }
+    .word-counter.warn { color: #dc2626; }
+
+    /* COORDS */
+    #coords-preview { font-size: .78rem; color: #1d4ed8; background: #dbeafe; border-radius: 5px; padding: 4px 9px; margin-top: 3px; }
+
+    /* CARD ITEMS (dynamic lists) */
+    .card-item { border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 10px; overflow: hidden; }
+    .card-item-header {
+      background: #f8fafc; padding: 9px 13px;
+      display: flex; align-items: center; gap: 7px;
+      border-bottom: 1px solid #e2e8f0; font-size: .83rem;
+    }
+    .card-item-header strong { flex: 1; }
+    .card-item-body { padding: 12px; }
+
+    /* CARD MINI (nested) */
+    .card-mini { background: #fafafa; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; margin-bottom: 8px; position: relative; }
+    .card-mini > strong { font-size: .8rem; color: #475569; }
+    .btn-remove-sm {
+      position: absolute; top: 8px; right: 8px;
+      background: none; border: 1px solid #fca5a5; color: #ef4444;
+      border-radius: 4px; cursor: pointer; font-size: .7rem; padding: 1px 6px;
+    }
+
+    /* BUTTONS */
+    .btn-remove {
+      background: none; border: 1px solid #fca5a5; color: #ef4444;
+      border-radius: 5px; cursor: pointer; font-size: .72rem; padding: 2px 8px;
+      white-space: nowrap;
+    }
+    .btn-remove:hover { background: #fef2f2; }
+    .btn-add {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: #eff6ff; border: 1px dashed #93c5fd; color: #2563eb;
+      border-radius: 7px; padding: 7px 14px; cursor: pointer;
+      font-size: .81rem; font-weight: 600; margin-top: 6px;
+    }
+    .btn-add:hover { background: #dbeafe; }
+    .btn-add-sm {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: #f0fdf4; border: 1px dashed #86efac; color: #15803d;
+      border-radius: 5px; padding: 5px 10px; cursor: pointer;
+      font-size: .75rem; font-weight: 600; margin-top: 4px;
+    }
+    .btn-add-sm:hover { background: #dcfce7; }
+
+    .empty-hint { color: #94a3b8; font-size: .8rem; font-style: italic; padding: 6px 0; }
+    .sec-sub-title {
+      font-size: .8rem; font-weight: 700; color: #475569; text-transform: uppercase;
+      letter-spacing: .4px; margin: 16px 0 8px; padding-bottom: 5px; border-bottom: 1px solid #e2e8f0;
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <span class="logo">SSPM · Parte Informativa</span>
+  <span class="status-pill"><span class="status-dot"></span>EN PROCESO</span>
+  <span class="folio-display" id="folio-display">PI-...</span>
+  <button class="btn-export" onclick="exportarJSON()">⬇ Exportar JSON</button>
+</div>
+
+<div class="container">
+  <div class="proto-notice">
+    <strong>Prototipo de campos — solo frontend.</strong>
+    Sin backend ni guardado. Todos los campos reflejan los del formulario real (Laravel + MongoDB).
+    Usa "Exportar JSON" para ver la estructura del documento.
+  </div>
+
+  <!-- ═══ 1. INFORMACIÓN GENERAL ════════════════════════════ -->
+  <div class="section-card" id="sec-info">
+    <div class="section-header" onclick="toggleSection('sec-info')">
+      <span class="sec-icon">📋</span><h3>1. Información General</h3>
+      <span class="toggle-icon" id="sec-info-icon">▼</span>
+    </div>
+    <div class="section-body" id="sec-info-body">
+      <div class="grid-3">
+        <div class="field-group">
+          <label>Folio CERI <span class="fid">PI_39</span></label>
+          <input id="PI_39" type="text" placeholder="Ej. CERI-2025-001">
+        </div>
+        <div class="field-group">
+          <label>Atendida por Medio de <span class="fid">PI_14</span></label>
+          <select id="PI_14">
+            <option value="">Seleccionar...</option>
+            <option>CERI</option><option>COMUNITARIO</option>
+            <option>RECORRIDO</option><option>MONITOREO</option><option>CIUDADANO</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Motivo de Intervención <span class="fid">PI_19</span></label>
+          <select id="PI_19">
+            <option value="">Seleccionar...</option>
+            <option>Falta Administrativa</option>
+            <option>Presunto delito</option>
+            <option>Emergencias</option>
+            <option>Diligencias</option>
+            <option>Para Conocimiento</option>
+          </select>
+          <span class="hint">Controla qué secciones adicionales aparecen.</span>
+        </div>
+        <div class="field-group">
+          <label>Distrito o Agrupamiento <span class="fid">PI_5</span></label>
+          <select id="PI_5"><option value="">Seleccionar...</option></select>
+        </div>
+        <div class="field-group">
+          <label>Turno <span class="fid">PI_7</span></label>
+          <select id="PI_7">
+            <option value="">Seleccionar...</option>
+            <option>1ro</option><option>2do</option><option>3er</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Fecha del Evento <span class="fid">PI_8</span></label>
+          <input id="PI_8" type="date">
+          <span class="hint">No se permiten fechas futuras.</span>
+        </div>
+        <div class="field-group">
+          <label>Hora del Evento <span class="fid">PI_9</span></label>
+          <input id="PI_9" type="time">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 2. UBICACIÓN ══════════════════════════════════════ -->
+  <div class="section-card" id="sec-ubicacion">
+    <div class="section-header" onclick="toggleSection('sec-ubicacion')">
+      <span class="sec-icon">📍</span><h3>2. Ubicación del Evento</h3>
+      <span class="toggle-icon" id="sec-ubicacion-icon">▼</span>
+    </div>
+    <div class="section-body" id="sec-ubicacion-body">
+      <div class="grid-4">
+        <div class="field-group col-span-2">
+          <label>Domicilio / Calle Principal <span class="fid">PI_12</span></label>
+          <input id="PI_12" type="text" placeholder="Calle y número">
+        </div>
+        <div class="field-group">
+          <label>Cruce 1 <span class="fid">PI_24</span></label>
+          <input id="PI_24" type="text" placeholder="Entre calle...">
+          <span class="hint">Auto-poblada por búsqueda de calles.</span>
+        </div>
+        <div class="field-group">
+          <label>Cruce 2 <span class="fid">PI_25</span></label>
+          <input id="PI_25" type="text" placeholder="...y calle">
+        </div>
+        <div class="field-group">
+          <label>Colonia <span class="fid">PI_11</span></label>
+          <select id="PI_11"><option value="">Seleccionar...</option></select>
+        </div>
+        <div class="field-group">
+          <label>Código Postal <span class="fid">PI_30</span></label>
+          <select id="PI_30"><option value="">Seleccionar...</option></select>
+        </div>
+        <div class="field-group">
+          <label>Distrito donde Ocurrió <span class="fid">PI_29</span></label>
+          <select id="PI_29"><option value="">Seleccionar...</option></select>
+          <span class="hint">Auto-seleccionado por sector.</span>
+        </div>
+        <div class="field-group">
+          <label>Sector del Evento <span class="fid">PI_4</span></label>
+          <select id="PI_4"><option value="">Seleccionar...</option></select>
+        </div>
+        <div class="field-group">
+          <label>Latitud <span class="fid">PI_52</span></label>
+          <input id="PI_52" type="text" placeholder="Ej. 19.432608">
+        </div>
+        <div class="field-group">
+          <label>Longitud <span class="fid">PI_53</span></label>
+          <input id="PI_53" type="text" placeholder="Ej. -99.133209">
+        </div>
+        <div class="field-group col-span-2">
+          <label>Vista previa GPS</label>
+          <div id="coords-preview" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 3. SUPERVISOR DE TURNO ═══════════════════════════ -->
+  <div class="section-card" id="sec-supervisor">
+    <div class="section-header" onclick="toggleSection('sec-supervisor')">
+      <span class="sec-icon">👮</span><h3>3. Supervisor de Turno</h3>
+      <span class="toggle-icon" id="sec-supervisor-icon">▼</span>
+    </div>
+    <div class="section-body" id="sec-supervisor-body">
+      <div class="grid-2">
+        <div class="field-group">
+          <label>No. Elemento <span class="fid">PI_15</span></label>
+          <input id="PI_15" type="text" readonly placeholder="(Auto al iniciar sesión)">
+        </div>
+        <div class="field-group">
+          <label>Nombre del Responsable <span class="fid">PI_16</span></label>
+          <input id="PI_16" type="text" readonly placeholder="(Auto al iniciar sesión)">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 4. QUEJOSO ════════════════════════════════════════ -->
+  <div class="section-card" id="sec-quejoso">
+    <div class="section-header" onclick="toggleSection('sec-quejoso')">
+      <span class="sec-icon">🙋</span><h3>4. Quejoso / Denunciante</h3>
+      <span class="toggle-icon" id="sec-quejoso-icon">▼</span>
+    </div>
+    <div class="section-body" id="sec-quejoso-body">
+      <div class="grid-3">
+        <div class="field-group">
+          <label>¿Hubo Quejoso? <span class="fid">PI_31</span></label>
+          <select id="PI_31">
+            <option value="">Seleccionar...</option>
+            <option>SI</option><option>NO</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="sec-quejoso-datos" style="display:none; margin-top:14px">
+        <div class="grid-4">
+          <div class="sub-title">Datos Personales</div>
+          <div class="field-group col-span-2">
+            <label>Nombre del Quejoso <span class="fid">PI_13</span></label>
+            <input id="PI_13" type="text" placeholder="Nombre(s) y apellidos">
+          </div>
+          <div class="field-group">
+            <label>Edad <span class="fid">PI_20</span></label>
+            <input id="PI_20" type="number" min="0" max="120" placeholder="Años">
+            <span class="hint">Auto-marca el checkbox de menor si edad &lt; 18.</span>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+              <input type="checkbox" id="quejoso_es_menor" style="width:16px;height:16px">
+              <label for="quejoso_es_menor" style="margin:0;font-size:.82rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer">¿Es menor de edad?</label>
+              <span id="badge-menor-quejoso" class="badge badge-orange" style="display:none">AUTO</span>
+            </div>
+          </div>
+          <div class="field-group">
+            <label>Sexo <span class="fid">PI_21</span></label>
+            <select id="PI_21">
+              <option value="">Seleccionar...</option>
+              <option>MASCULINO</option><option>FEMENINO</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label>País de Origen <span class="fid">PI_22</span></label>
+            <select id="PI_22"><option value="">Seleccionar...</option></select>
+          </div>
+          <div class="field-group" id="wrap-PI_23-mex" style="display:none">
+            <label>Estado de Origen (MX) <span class="fid">PI_23</span></label>
+            <select id="PI_23"><option value="">Seleccionar...</option></select>
+          </div>
+          <div class="field-group" id="wrap-PI_23-otro" style="display:none">
+            <label>Estado / Provincia <span class="fid">PI_23</span></label>
+            <input id="PI_23_otro" type="text" placeholder="Estado o provincia">
+          </div>
+          <div class="field-group">
+            <label>Ciudad de Origen <span class="fid">PI_38</span></label>
+            <input id="PI_38" type="text">
+          </div>
+          <div class="field-group">
+            <label>¿Es Migrante?</label>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0">
+              <input type="checkbox" id="quejoso_es_migrante" style="width:16px;height:16px;cursor:pointer">
+              <label for="quejoso_es_migrante" style="margin:0;font-size:.85rem;font-weight:400;text-transform:none;letter-spacing:0;cursor:pointer">Sí, es migrante</label>
+            </div>
+          </div>
+
+          <div class="sub-title">Domicilio del Quejoso</div>
+          <div class="field-group col-span-2">
+            <label>Domicilio <span class="fid">PI_26</span></label>
+            <input id="PI_26" type="text" placeholder="Calle">
+          </div>
+          <div class="field-group">
+            <label>No. Exterior <span class="fid">PI_27</span></label>
+            <input id="PI_27" type="text">
+          </div>
+          <div class="field-group">
+            <label>No. Interior <span class="fid">PI_28</span></label>
+            <input id="PI_28" type="text">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 5. NARRATIVA ══════════════════════════════════════ -->
+  <div class="section-card" id="sec-narrativa">
+    <div class="section-header" onclick="toggleSection('sec-narrativa')">
+      <span class="sec-icon">📝</span><h3>5. Narrativa de los Hechos</h3>
+      <span class="toggle-icon" id="sec-narrativa-icon">▼</span>
+    </div>
+    <div class="section-body" id="sec-narrativa-body">
+      <div class="field-group">
+        <label>Descripción de los hechos <span class="fid">PI_17</span></label>
+        <textarea id="PI_17" rows="8" placeholder="Describa detalladamente los hechos ocurridos..."></textarea>
+        <span id="narrativa-counter" class="word-counter warn">0 / 60 palabras mínimo</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 6. USO DE FUERZA ══════════════════════════════════ -->
+  <div class="section-card" id="sec-fuerza">
+    <div class="section-header" onclick="toggleSection('sec-fuerza')">
+      <span class="sec-icon">⚠️</span><h3>6. Uso de la Fuerza e IPH</h3>
+      <span class="toggle-icon" id="sec-fuerza-icon">▼</span>
+    </div>
+    <div class="section-body" id="sec-fuerza-body">
+      <div class="grid-3">
+        <div class="field-group">
+          <label>¿Hizo Uso de la Fuerza? <span class="fid">PI_18</span></label>
+          <select id="PI_18">
+            <option value="">Seleccionar...</option>
+            <option>Si</option><option>No</option>
+          </select>
+          <span class="hint">Si es "Si", se generará un IUF vinculado.</span>
+        </div>
+        <div class="field-group">
+          <label>Folio IUF (si aplica)</label>
+          <input id="folio_iuf" type="text" readonly placeholder="(Auto-generado al marcar uso de fuerza)">
+        </div>
+      </div>
+
+      <!-- IPH — solo visible para Presunto delito y Falta Administrativa -->
+      <div id="sec-iph" style="display:none; margin-top:14px; padding: 12px; background:#eff6ff; border:1px solid #93c5fd; border-radius:8px">
+        <div class="grid-2">
+          <div class="field-group">
+            <label>ID IPH (vinculado)</label>
+            <input id="iph_id" type="text" readonly placeholder="(Auto-vinculado al ligar IPH)">
+            <span class="hint">Se bloquea PI_19 una vez asignado el IPH.</span>
+          </div>
+          <div class="field-group">
+            <label>Acción IPH</label>
+            <button type="button" class="btn-add" style="margin-top:4px">🔗 Ligar IPH</button>
+            <span class="hint">Disponible para Presunto delito y Falta Administrativa.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 7. ASEGURAMIENTOS ════════════════════════════════
+       PI_34/35 se fuerzan a NO + disabled cuando PI_19 = Emergencias.
+       PI_36/37 NO se fuerzan (según código real, están comentados). ══ -->
+  <div class="section-card" id="sec-toggles">
+    <div class="section-header" onclick="toggleSection('sec-toggles')">
+      <span class="sec-icon">✅</span><h3>7. Aseguramientos <span style="font-weight:400;font-size:.8rem">(PI_34–PI_37)</span></h3>
+      <span class="toggle-icon" id="sec-toggles-icon">▼</span>
+    </div>
+    <div class="section-body" id="sec-toggles-body">
+      <div class="hint" style="margin-bottom:12px; background:#fef3c7; border-radius:5px; padding:6px 10px; font-size:.77rem; color:#92400e">
+        PI_34 y PI_35 se fuerzan a <strong>NO</strong> y se deshabilitan cuando Motivo = <em>Emergencias</em>.<br>
+        PI_36 y PI_37 <strong>no</strong> se deshabilitan en Emergencias (comportamiento del código real).
+      </div>
+      <div class="grid-4">
+        <div class="field-group">
+          <label>¿Hubo Aseg. de Armas? <span class="fid">PI_34</span></label>
+          <select id="PI_34">
+            <option value="">Seleccionar...</option>
+            <option>SI</option><option>NO</option>
+          </select>
+          <span class="hint">→ muestra sección Armas</span>
+        </div>
+        <div class="field-group">
+          <label>¿Hubo Aseg. de Sustancias? <span class="fid">PI_35</span></label>
+          <select id="PI_35">
+            <option value="">Seleccionar...</option>
+            <option>SI</option><option>NO</option>
+          </select>
+          <span class="hint">→ muestra sección Sustancias</span>
+        </div>
+        <div class="field-group">
+          <label>¿Hubo Aseg. de Objetos? <span class="fid">PI_36</span></label>
+          <select id="PI_36">
+            <option value="">Seleccionar...</option>
+            <option>SI</option><option>NO</option>
+          </select>
+          <span class="hint">→ muestra sección Objetos</span>
+        </div>
+        <div class="field-group">
+          <label>¿Hubo Aseg. de Vehículos? <span class="fid">PI_37</span></label>
+          <select id="PI_37">
+            <option value="">Seleccionar...</option>
+            <option>SI</option><option>NO</option>
+          </select>
+          <span class="hint">→ muestra sección Vehículos</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 8. AGENTES INVOLUCRADOS ══════════════════════════ -->
+  <div class="section-card" id="sec-agentes">
+    <div class="section-header" onclick="toggleSection('sec-agentes')">
+      <span class="sec-icon">🪪</span><h3>8. Agentes Involucrados</h3>
+      <span class="toggle-icon" id="sec-agentes-icon">▼</span>
+    </div>
+    <div class="section-body" id="sec-agentes-body">
+      <div id="lista-agentes"></div>
+      <button type="button" class="btn-add" onclick="addAgente()">＋ Agregar Agente</button>
+    </div>
+  </div>
+
+  <!-- ═══ 9. DETENIDOS — siempre visible, PI_32 controla el interior ══ -->
+  <div class="section-card" id="sec-detenidos">
+    <div class="section-header" onclick="toggleSection('sec-detenidos')">
+      <span class="sec-icon">🔒</span><h3>9. Detenidos</h3>
+      <span class="toggle-icon" id="sec-detenidos-icon">▼</span>
+    </div>
+    <div class="section-body" id="sec-detenidos-body">
+      <!-- PI_32 siempre presente; se deshabilita cuando PI_19 = Emergencias -->
+      <div class="grid-2" style="margin-bottom:12px">
+        <div class="field-group">
+          <label>¿Hubo Personas Detenidas? <span class="fid">PI_32</span></label>
+          <select id="PI_32">
+            <option value="">Seleccionar...</option>
+            <option>SI</option><option>NO</option>
+          </select>
+          <span class="hint">Se fuerza a NO y se deshabilita cuando Motivo = Emergencias.</span>
+        </div>
+      </div>
+
+      <div id="sec-lista-detenidos" style="display:none">
+        <!-- Nota de clasi_hechos: solo aplica cuando PI_19 = Presunto delito -->
+        <div id="nota-clasi-detenidos" style="display:none; margin-bottom:8px; padding:8px 12px; background:#fef9c3; border:1px solid #fde047; border-radius:6px; font-size:.78rem; color:#854d0e">
+          ⚠️ <strong>Clasificación de hechos por detenido</strong> — Solo aplica cuando el Motivo es <em>Presunto delito</em>. Usa el botón "＋ Agregar Delito al Detenido" dentro de cada registro.
+        </div>
+        <div id="lista-detenidos"></div>
+      </div>
+      <button type="button" id="btn-add-detenido" class="btn-add" style="display:none" onclick="addDetenido()">＋ Agregar Detenido</button>
+    </div>
+  </div>
+
+  <!-- ═══ 10. VÍCTIMAS — PI_33 controla la lista ═══════════ -->
+  <div class="section-card" id="sec-victimas">
+    <div class="section-header" onclick="toggleSection('sec-victimas')">
+      <span class="sec-icon">🩺</span><h3>10. Víctimas</h3>
+      <span class="toggle-icon" id="sec-victimas-icon">▼</span>
+    </div>
+    <div class="section-body" id="sec-victimas-body">
+      <div class="grid-2" style="margin-bottom:12px">
+        <div class="field-group">
+          <label>¿Hubo Víctima? <span class="fid">PI_33</span></label>
+          <select id="PI_33">
+            <option value="">Seleccionar...</option>
+            <option>SI</option><option>NO</option>
+          </select>
+        </div>
+      </div>
+      <div id="sec-lista-victimas" style="display:none">
+        <div id="lista-victimas"></div>
+      </div>
+      <button type="button" id="btn-add-victima" class="btn-add" style="display:none" onclick="addVictima()">＋ Agregar Víctima</button>
+    </div>
+  </div>
+
+  <!-- ═══ 11. PERSONAS RESGUARDADAS ════════════════════════
+       Oculta cuando PI_19 = Falta Administrativa.
+       PI_51 controla si se muestra la lista interna. ════════ -->
+  <div class="section-card" id="sec-resguardados">
+    <div class="section-header" onclick="toggleSection('sec-resguardados')">
+      <span class="sec-icon">🛡️</span><h3>11. Personas Resguardadas</h3>
+      <span class="toggle-icon" id="sec-resguardados-icon">▼</span>
+    </div>
+    <div class="section-body" id="sec-resguardados-body">
+      <div class="hint" style="margin-bottom:10px; color:#92400e; background:#fef3c7; border-radius:5px; padding:6px 10px; font-size:.77rem">
+        Esta sección se <strong>oculta</strong> cuando el Motivo de Intervención es <em>Falta Administrativa</em>.
+      </div>
+      <div class="grid-2" style="margin-bottom:12px">
+        <div class="field-group">
+          <label>¿Hubo Personas Resguardadas? <span class="fid">PI_51</span></label>
+          <select id="PI_51">
+            <option value="">Seleccionar...</option>
+            <option>SI</option><option>NO</option>
+          </select>
+        </div>
+      </div>
+      <div id="sec-lista-resguardados" style="display:none">
+        <div id="lista-resguardados"></div>
+      </div>
+      <button type="button" id="btn-add-resguardado" class="btn-add" style="display:none" onclick="addResguardado()">＋ Agregar Persona Resguardada</button>
+    </div>
+  </div>
+
+  <!-- ═══ 12. CLASI. DE HECHOS / DELITOS (PI_19=Presunto delito) -->
+  <div class="section-card" id="sec-delitos" style="display:none">
+    <div class="section-header" onclick="toggleSection('sec-delitos')">
+      <span class="sec-icon">⚖️</span><h3>12. Clasificación de Hechos (Delitos) — nivel parte</h3>
+      <span class="toggle-icon" id="sec-delitos-icon">▼</span>
+    </div>
+    <div class="section-body" id="sec-delitos-body">
+      <div id="lista-clasi-hechos"></div>
+      <button type="button" class="btn-add" onclick="addClasiHecho()">＋ Agregar Delito</button>
+    </div>
+  </div>
+
+  <!-- ═══ 13. EMERGENCIAS (PI_19=Emergencias) ═══════════════ -->
+  <div class="section-card" id="sec-emergencias" style="display:none">
+    <div class="section-header" onclick="toggleSection('sec-emergencias')">
+      <span class="sec-icon">🚨</span><h3>13. Emergencias</h3>
+      <span class="toggle-icon" id="sec-emergencias-icon">▼</span>
+    </div>
+    <div class="section-body" id="sec-emergencias-body">
+      <div id="lista-emergencias"></div>
+      <button type="button" class="btn-add" onclick="addEmergencia()">＋ Agregar Emergencia</button>
+    </div>
+  </div>
+
+  <!-- ═══ 14. FALTAS ADMINISTRATIVAS (PI_19=Falta Admin.) ═══ -->
+  <div class="section-card" id="sec-faltas" style="display:none">
+    <div class="section-header" onclick="toggleSection('sec-faltas')">
+      <span class="sec-icon">📄</span><h3>14. Faltas Administrativas</h3>
+      <span class="toggle-icon" id="sec-faltas-icon">▼</span>
+    </div>
+    <div class="section-body" id="sec-faltas-body">
+      <div id="lista-faltas"></div>
+      <button type="button" class="btn-add" onclick="addFalta()">＋ Agregar Falta</button>
+    </div>
+  </div>
+
+  <!-- ═══ 15. DILIGENCIAS (PI_19=Diligencias) ══════════════ -->
+  <div class="section-card" id="sec-diligencias" style="display:none">
+    <div class="section-header" onclick="toggleSection('sec-diligencias')">
+      <span class="sec-icon">🗂️</span><h3>15. Diligencias</h3>
+      <span class="toggle-icon" id="sec-diligencias-icon">▼</span>
+    </div>
+    <div class="section-body" id="sec-diligencias-body">
+      <div id="lista-diligencias"></div>
+      <button type="button" class="btn-add" onclick="addDiligencia()">＋ Agregar Diligencia</button>
+    </div>
+  </div>
+
+  <!-- ═══ 16. PARA CONOCIMIENTO (PI_19=Para Conocimiento) ══ -->
+  <div class="section-card" id="sec-conocimiento" style="display:none">
+    <div class="section-header" onclick="toggleSection('sec-conocimiento')">
+      <span class="sec-icon">ℹ️</span><h3>16. Para Conocimiento</h3>
+      <span class="toggle-icon" id="sec-conocimiento-icon">▼</span>
+    </div>
+    <div class="section-body" id="sec-conocimiento-body">
+      <div id="lista-conocimiento"></div>
+      <button type="button" class="btn-add" onclick="addConocimiento()">＋ Agregar Registro</button>
+    </div>
+  </div>
+
+  <!-- ═══ 17. ARMAS (PI_34=SI) ══════════════════════════════ -->
+  <div class="section-card" id="sec-armas" style="display:none">
+    <div class="section-header" onclick="toggleSection('sec-armas')">
+      <span class="sec-icon">🔫</span><h3>17. Aseguramiento de Armas</h3>
+      <span class="toggle-icon" id="sec-armas-icon">▼</span>
+    </div>
+    <div class="section-body" id="sec-armas-body">
+      <div id="lista-armas"></div>
+      <button type="button" class="btn-add" onclick="addArma()">＋ Agregar Arma</button>
+    </div>
+  </div>
+
+  <!-- ═══ 18. SUSTANCIAS (PI_35=SI) ════════════════════════ -->
+  <div class="section-card" id="sec-sustancias" style="display:none">
+    <div class="section-header" onclick="toggleSection('sec-sustancias')">
+      <span class="sec-icon">💊</span><h3>18. Aseguramiento de Sustancias</h3>
+      <span class="toggle-icon" id="sec-sustancias-icon">▼</span>
+    </div>
+    <div class="section-body" id="sec-sustancias-body">
+      <div id="lista-sustancias"></div>
+      <button type="button" class="btn-add" onclick="addSustancia()">＋ Agregar Sustancia</button>
+    </div>
+  </div>
+
+  <!-- ═══ 19. OBJETOS (PI_36=SI) ═══════════════════════════ -->
+  <div class="section-card" id="sec-objetos" style="display:none">
+    <div class="section-header" onclick="toggleSection('sec-objetos')">
+      <span class="sec-icon">📦</span><h3>19. Aseguramiento de Objetos</h3>
+      <span class="toggle-icon" id="sec-objetos-icon">▼</span>
+    </div>
+    <div class="section-body" id="sec-objetos-body">
+      <div id="lista-objetos"></div>
+      <button type="button" class="btn-add" onclick="addObjeto()">＋ Agregar Objeto</button>
+    </div>
+  </div>
+
+  <!-- ═══ 20. VEHÍCULOS (PI_37=SI) ════════════════════════ -->
+  <div class="section-card" id="sec-vehiculos" style="display:none">
+    <div class="section-header" onclick="toggleSection('sec-vehiculos')">
+      <span class="sec-icon">🚗</span><h3>20. Vehículos Involucrados / Asegurados</h3>
+      <span class="toggle-icon" id="sec-vehiculos-icon">▼</span>
+    </div>
+    <div class="section-body" id="sec-vehiculos-body">
+      <div id="lista-vehiculos"></div>
+      <button type="button" class="btn-add" onclick="addVehiculo()">＋ Agregar Vehículo</button>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script src="partes-informativas.js"></script>
+</body>
+</html>

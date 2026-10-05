@@ -1,0 +1,1124 @@
+// ==============================================================================
+// PIMSy — Police Information Manager System
+// Modelo de datos v0.2 (borrador para validar alineación)  ·  PostgreSQL + PostGIS
+// Base: Especificación Técnica v1.0 + principio de evento acumulativo + mapeo IPH / Parte Informativa
+// Convenciones: llaves técnicas uuid; folios son referencias, nunca llaves; snapshots con sufijo _snap.
+// Las tablas del grupo "Por validar" salen del mapeo de formularios y NO están en la v1.0.
+// ==============================================================================
+
+Project PIMSy {
+  database_type: 'PostgreSQL'
+  Note: '''
+  **PIMSy v0.2** — el EVENTO es la entidad raíz y se construye por aportaciones: nace con un registro mínimo (desde CERI o desde cualquier área autorizada) y cada área le agrega lo suyo.
+  Columnas de aportación (aportado_por, area_aporta_id, aportado_en): presentes en las tablas hijas del evento; sin Ref para no saturar el diagrama.
+  Indicadores "tiene_detenciones, tiene_aseguramientos…" NO son columnas capturadas: se calculan en la vista v_evento_indicadores.
+  Ausencia no es inexistencia: evento_componente_estado marca cada pieza como pendiente, registrado o sin novedad.
+  Capa analítica (vistas mv_*) para dashboard y mapas: fuera de este diagrama.
+  '''
+}
+
+Enum evento_estado {
+  preregistro_ceri [note: 'creado por importación del reporte CERI; no cuenta en estadísticas']
+  borrador_sin_origen [note: 'levantado por un formulario sin evento previo; plataforma debe conciliarlo']
+  abierto
+  en_proceso
+  cerrado [note: 'solo plataforma']
+  reabierto [note: 'solo jurídico']
+  anulado [note: 'por fusión o error; auditado']
+}
+Enum estado_componente {
+  pendiente
+  registrado
+  sin_novedad
+}
+Enum iph_tipo {
+  delito
+  falta_administrativa
+}
+Enum iph_estatus {
+  borrador
+  firmado
+  enviado
+}
+Enum rol_persona {
+  victima
+  quejoso
+  denunciante
+  ofendido
+  resguardada
+}
+Enum arma_subtipo {
+  corta
+  larga
+  blanca
+}
+Enum objeto_tipo {
+  dinero
+  otro
+}
+Enum resguardo_tipo {
+  persona
+  vehiculo
+  objeto
+}
+Enum preregistro_estado {
+  pendiente
+  promovido
+  archivado
+}
+Enum bien_tipo {
+  arma
+  sustancia
+  objeto
+}
+
+
+// ============================== EVENTO (núcleo) ==============================
+Table evento {
+  evento_id uuid [pk, default: `gen_random_uuid()`, note: 'inmutable']
+  folio varchar [unique, note: 'folio operativo; no es llave']
+  denominacion varchar
+  tipo_origen_id int [ref: > cat_tipo_origen.tipo_origen_id]
+  medio_conocimiento_id int [ref: > cat_medio_conocimiento.medio_conocimiento_id]
+  folio_ceri varchar [unique, note: 'si el origen es llamada o despacho CERI']
+  motivo_id int [ref: > cat_motivo.motivo_id]
+  fecha_evento date
+  hora_evento time
+  fecha_hora_conocimiento timestamptz
+  fecha_hora_arribo timestamptz
+  ubicacion_id uuid [unique, ref: - ubicacion.ubicacion_id]
+  narrativa text [note: 'general; cada IPH solo agrega la suya si el evento tiene más de uno']
+  estado evento_estado [not null, default: 'borrador_sin_origen']
+  evento_canonico_id uuid [ref: > evento.evento_id, note: 'se llena al fusionar: apunta al evento vigente']
+  version int [not null, default: 1, note: 'bloqueo optimista: varias áreas editan el mismo evento']
+  creado_por uuid [ref: > usuario.usuario_id]
+  area_creadora_id int [ref: > cat_area.area_id]
+  creado_en timestamptz [default: `now()`]
+  cerrado_por uuid [ref: > usuario.usuario_id, note: 'plataforma']
+  cerrado_en timestamptz
+  reabierto_por uuid [ref: > usuario.usuario_id, note: 'jurídico']
+  reabierto_en timestamptz
+  indexes {
+    fecha_evento
+    estado
+    (estado, area_creadora_id)
+  }
+  Note: 'Se particiona por rango mensual de fecha_evento. Puede nacer solo con origen y fecha (Ruta A) o desde cualquier formulario (Ruta B).'
+}
+
+Table evento_componente_estado {
+  evento_id uuid [ref: > evento.evento_id]
+  componente_id int [ref: > cat_componente_evento.componente_evento_id]
+  estado estado_componente [not null, default: 'pendiente']
+  area_responsable_id int [ref: > cat_area.area_id]
+  actualizado_por uuid
+  actualizado_en timestamptz [default: `now()`]
+  indexes { (evento_id, componente_id) [pk] }
+  Note: 'Distingue "aún no se captura" de "no hubo". El cierre exige que ninguna pieza quede pendiente.'
+}
+
+Table evento_agrupamiento {
+  evento_id uuid [ref: > evento.evento_id]
+  agrupamiento_id int [ref: > cat_agrupamiento.agrupamiento_id]
+  indexes { (evento_id, agrupamiento_id) [pk] }
+}
+
+Table evento_autoridad {
+  evento_id uuid [ref: > evento.evento_id]
+  autoridad_id int [ref: > cat_autoridad.autoridad_id]
+  rol_participacion varchar
+  indexes { (evento_id, autoridad_id) [pk] }
+}
+
+Table evento_fusion {
+  fusion_id uuid [pk, default: `gen_random_uuid()`]
+  evento_origen_id uuid [ref: > evento.evento_id, note: 'el provisional que se anula']
+  evento_destino_id uuid [ref: > evento.evento_id, note: 'el evento canónico']
+  motivo text
+  fusionado_por uuid [ref: > usuario.usuario_id]
+  fusionado_en timestamptz [default: `now()`]
+  Note: 'Al fusionar se reasigna el evento_id de todos los registros hijos. Operación auditada.'
+}
+
+Table evento_preregistro_ceri {
+  preregistro_id uuid [pk, default: `gen_random_uuid()`]
+  folio_ceri varchar [unique, not null]
+  archivo_origen varchar [note: 'reporte macro de CERI del que proviene']
+  fecha_importacion timestamptz [default: `now()`]
+  datos_origen jsonb [note: 'registro tal como llegó (tipo, subtipo, coordenadas, horas)']
+  estado preregistro_estado [not null, default: 'pendiente']
+  evento_id uuid [ref: > evento.evento_id, note: 'se llena al promoverlo']
+  caduca_en timestamptz [note: 'si nadie agrega una consecuencia, se archiva']
+  Note: 'Entrada simplificada desde CERI sin API: importación diaria del Excel.'
+}
+
+Table ubicacion {
+  ubicacion_id uuid [pk, default: `gen_random_uuid()`]
+  calle varchar
+  cruce_1 varchar
+  cruce_2 varchar
+  numero_exterior varchar(20)
+  numero_interior varchar(20)
+  referencia text
+  codigo_postal varchar(5)
+  municipio varchar [default: 'Juárez']
+  entidad varchar [default: 'Chihuahua']
+  colonia_id int [ref: > cat_colonia.colonia_id, note: 'el catálogo PREVALECE sobre la georreferencia']
+  distrito_id int [ref: > cat_distrito.distrito_id, note: 'autollenado por punto en polígono']
+  cuadrante_id int [ref: > cat_cuadrante.cuadrante_id, note: 'autollenado']
+  sector_id int [ref: > cat_sector.sector_id, note: 'autollenado']
+  latitud decimal(10,8)
+  longitud decimal(11,8)
+  geom "geometry(Point,4326)" [note: 'PostGIS']
+  fuente_geocodificacion varchar [note: 'Google, manual…; siempre editable']
+  punto_validado_por uuid [ref: > usuario.usuario_id]
+  punto_validado_en timestamptz
+  croquis_path varchar [note: 'imagen estática generada de la coordenada']
+  croquis_generado_en timestamptz
+  indexes { geom [type: gist] }
+}
+
+Table v_evento_indicadores [headercolor: #7F7F7F] {
+  evento_id uuid [ref: - evento.evento_id]
+  tiene_detenciones boolean
+  tiene_aseguramientos boolean
+  tiene_entrega_hechos boolean
+  tiene_atencion_victimas boolean
+  tiene_quejoso_denunciante boolean
+  tiene_resguardo_personas boolean
+  tiene_resguardo_objetos boolean
+  tiene_ordenes_aprehension boolean
+  tiene_atencion_emergencia boolean
+  tiene_uso_fuerza boolean
+  componentes_pendientes int
+  Note: 'VISTA, no tabla. Reemplaza los booleanos de derivación del requerimiento: se calculan por existencia de registros hijos.'
+}
+
+
+// ============================== AGENTES ==============================
+Table mongo_agente [headercolor: #7F7F7F] {
+  agente_mongo_id varchar [pk]
+  numero_empleado varchar
+  nombre varchar
+  apellido_paterno varchar
+  apellido_materno varchar
+  distrito varchar
+  area varchar
+  subarea varchar
+  puesto varchar
+  unidad varchar
+  Note: 'EXTERNA: colección de la plataforma de gestión digital (MongoDB). Consulta viva; PIMSy no la copia.'
+}
+
+Table agente_involucrado {
+  agente_involucrado_id uuid [pk, default: `gen_random_uuid()`]
+  evento_id uuid [not null, ref: > evento.evento_id]
+  agente_mongo_id varchar [ref: > mongo_agente.agente_mongo_id, note: 'nulo si es de otra institución']
+  es_externo boolean [default: false]
+  institucion_externa varchar
+  numero_empleado_snap varchar
+  nombre_snap varchar
+  apellido_paterno_snap varchar
+  apellido_materno_snap varchar
+  distrito_snap varchar
+  area_snap varchar
+  subarea_snap varchar
+  puesto_snap varchar
+  unidad_snap varchar
+  snapshot_en timestamptz [default: `now()`, note: 'se congela al agregar al agente al evento']
+  aportado_por uuid [note: 'usuario que lo agregó al evento']
+  area_aporta_id int [note: 'área que lo agregó (CERI, policía, barandilla, jurídico, plataforma…)']
+  aportado_en timestamptz [default: `now()`]
+  indexes {
+    (evento_id, agente_mongo_id) [unique]
+    agente_mongo_id
+  }
+}
+
+Table agente_involucrado_rol {
+  agente_involucrado_id uuid [ref: > agente_involucrado.agente_involucrado_id]
+  rol_agente_id int [ref: > cat_rol_agente.rol_agente_id]
+  indexes { (agente_involucrado_id, rol_agente_id) [pk] }
+  Note: 'Un mismo agente puede tener varios roles en el evento.'
+}
+
+
+// ============================== PERSONAS (no detenidas) ==============================
+Table persona {
+  persona_id uuid [pk, default: `gen_random_uuid()`]
+  nombre varchar [not null]
+  apellido_paterno varchar
+  apellido_materno varchar
+  fecha_nacimiento date
+  sexo_id int [ref: > cat_sexo.sexo_id]
+  curp varchar(18) [note: 'opcional; riesgo de duplicado asumido para no detenidos']
+  telefono varchar
+  ocupacion varchar
+  pais_origen_id int [ref: > cat_pais.pais_id, note: 'de aquí se deriva extranjero / nacionalidad para IPH y parte']
+  estado_origen varchar
+  ciudad_origen varchar
+  etnia_id int [ref: > cat_etnia.etnia_id]
+  etnia_otro varchar
+  domicilio_calle varchar
+  domicilio_numero_exterior varchar(20)
+  domicilio_numero_interior varchar(20)
+  domicilio_colonia_id int [ref: > cat_colonia.colonia_id]
+  domicilio_codigo_postal varchar(5)
+  indexes { curp }
+  Note: 'Persona maestra. El detenido NO es un rol de persona: su identidad vive en SIPROB.'
+}
+
+Table participacion_persona {
+  participacion_id uuid [pk, default: `gen_random_uuid()`]
+  evento_id uuid [not null, ref: > evento.evento_id]
+  persona_id uuid [not null, ref: > persona.persona_id]
+  rol rol_persona [not null]
+  edad_al_momento_evento smallint
+  aportado_por uuid [note: 'usuario que lo agregó al evento']
+  area_aporta_id int [note: 'área que lo agregó (CERI, policía, barandilla, jurídico, plataforma…)']
+  aportado_en timestamptz [default: `now()`]
+  indexes { (evento_id, persona_id, rol) [unique] }
+  Note: 'Una persona puede tener varios roles en el mismo evento y roles distintos en eventos distintos.'
+}
+
+Table part_victima {
+  participacion_id uuid [pk, ref: - participacion_persona.participacion_id]
+  requirio_canalizacion boolean
+  atencion_legal_id int [ref: > cat_atencion_legal.atencion_legal_id]
+  atencion_legal_otro varchar
+  atencion_psicologica_id int [ref: > cat_atencion_psicologica.atencion_psicologica_id]
+  atencion_medica_id int [ref: > cat_atencion_medica.atencion_medica_id]
+  atencion_medica_otro varchar
+  Note: 'Atributos específicos del rol víctima (hoy en el Parte Informativo).'
+}
+
+Table part_resguardada {
+  participacion_id uuid [pk, ref: - participacion_persona.participacion_id]
+  resguardo_id uuid [not null, ref: > resguardo.resguardo_id]
+}
+
+Table atencion_especializada {
+  atencion_id uuid [pk, default: `gen_random_uuid()`]
+  participacion_id uuid [not null, ref: > participacion_persona.participacion_id]
+  unidad_especializada_id int [ref: > cat_unidad_especializada.unidad_especializada_id]
+  fecha_hora timestamptz
+  observaciones text
+  Note: 'Atención en Trabajo Social o unidad de violencia familiar (criterio de inclusión del requerimiento).'
+}
+
+Table resguardo {
+  resguardo_id uuid [pk, default: `gen_random_uuid()`]
+  evento_id uuid [not null, ref: > evento.evento_id]
+  tipo resguardo_tipo [not null]
+  motivo text
+  institucion_resguardo_id int [ref: > cat_institucion_resguardo.institucion_resguardo_id]
+  institucion_otra varchar
+  fecha_inicio timestamptz
+  fecha_fin timestamptz
+  aportado_por uuid [note: 'usuario que lo agregó al evento']
+  area_aporta_id int [note: 'área que lo agregó (CERI, policía, barandilla, jurídico, plataforma…)']
+  aportado_en timestamptz [default: `now()`]
+  Note: 'Entidad del evento paralela a aseguramiento. Puede contener personas, vehículos y objetos; nunca armas ni sustancias.'
+}
+
+
+// ============================== DETENCIÓN Y DETALLES LEGALES ==============================
+Table siprob_detenido [headercolor: #7F7F7F] {
+  id_siprob varchar [pk]
+  rnd varchar [note: 'Registro Nacional de Detenidos']
+  curp varchar(18)
+  nombre varchar
+  apellido_paterno varchar
+  apellido_materno varchar
+  fecha_nacimiento date
+  sexo varchar
+  pais_origen varchar
+  estado_origen varchar
+  ciudad_origen varchar
+  domicilio varchar
+  Note: 'EXTERNA: vista de solo lectura sobre SIPROB (PostgreSQL). Fuente de verdad del detenido (CURP + huella).'
+}
+
+Table detencion {
+  detencion_id uuid [pk, default: `gen_random_uuid()`]
+  evento_id uuid [not null, ref: > evento.evento_id]
+  fecha_hora timestamptz
+  tipo_detencion_id int [ref: > cat_tipo_detencion.tipo_detencion_id]
+  ubicacion_id uuid [ref: > ubicacion.ubicacion_id, note: 'solo si el lugar de detención difiere del evento']
+  observaciones text
+  aportado_por uuid [note: 'usuario que lo agregó al evento']
+  area_aporta_id int [note: 'área que lo agregó (CERI, policía, barandilla, jurídico, plataforma…)']
+  aportado_en timestamptz [default: `now()`]
+  Note: 'Proceso: agrupa a todos los detenidos del evento y sus consecuencias.'
+}
+
+Table detenido {
+  detenido_id uuid [pk, default: `gen_random_uuid()`]
+  detencion_id uuid [not null, ref: > detencion.detencion_id]
+  id_siprob varchar [ref: > siprob_detenido.id_siprob, note: 'nulo hasta que barandilla lo registre en SIPROB']
+  iph_id uuid [ref: > iph.iph_id, note: 'un detenido pertenece a EXACTAMENTE UN IPH; nulo hasta que jurídico lo enrute']
+  rnd_snap varchar
+  nombre_snap varchar
+  apellido_paterno_snap varchar
+  apellido_materno_snap varchar
+  fecha_nacimiento_snap date
+  sexo_snap varchar
+  pais_origen_snap varchar
+  edad_al_momento_evento smallint
+  lectura_derechos boolean
+  aportado_por uuid [note: 'usuario que lo agregó al evento']
+  area_aporta_id int [note: 'área que lo agregó (CERI, policía, barandilla, jurídico, plataforma…)']
+  aportado_en timestamptz [default: `now()`]
+  indexes {
+    id_siprob
+    iph_id
+  }
+  Note: 'Entidad propia (no rol de persona). Snapshot mínimo para que las estadísticas no cambien si SIPROB corrige un dato.'
+}
+
+Table delito {
+  delito_id uuid [pk, default: `gen_random_uuid()`]
+  evento_id uuid [not null, ref: > evento.evento_id, note: 'obligatorio: existe aunque no haya detenido']
+  detenido_id uuid [ref: > detenido.detenido_id]
+  participacion_victima_id uuid [ref: > participacion_persona.participacion_id]
+  cat_delito_id int [ref: > cat_delito.delito_id]
+  cat_subdelito_id int [ref: > cat_subdelito.subdelito_id]
+  delito_especifique varchar
+  consecutivo smallint
+  fuero_id int [ref: > cat_fuero.fuero_id]
+  hubo_violencia boolean
+  modalidad_id int [ref: > cat_modalidad_delito.modalidad_delito_id]
+  aportado_por uuid [note: 'usuario que lo agregó al evento']
+  area_aporta_id int [note: 'área que lo agregó (CERI, policía, barandilla, jurídico, plataforma…)']
+  aportado_en timestamptz [default: `now()`]
+  Note: 'Relación opcional con el detenido (decisión propuesta): cubre el presunto delito sin detenido.'
+}
+
+Table falta_administrativa {
+  falta_id uuid [pk, default: `gen_random_uuid()`]
+  evento_id uuid [not null, ref: > evento.evento_id]
+  detenido_id uuid [ref: > detenido.detenido_id]
+  cat_falta_id int [ref: > cat_falta_administrativa.falta_administrativa_id]
+  fraccion varchar
+  descripcion text
+  aportado_por uuid [note: 'usuario que lo agregó al evento']
+  area_aporta_id int [note: 'área que lo agregó (CERI, policía, barandilla, jurídico, plataforma…)']
+  aportado_en timestamptz [default: `now()`]
+}
+
+Table orden_aprehension {
+  orden_id uuid [pk, default: `gen_random_uuid()`]
+  evento_id uuid [not null, ref: > evento.evento_id]
+  detenido_id uuid [not null, ref: > detenido.detenido_id]
+  mandamiento_judicial varchar
+  autoridad_emisora_id int [ref: > cat_autoridad.autoridad_id]
+  delito_orden varchar
+  vigente boolean
+  aportado_por uuid [note: 'usuario que lo agregó al evento']
+  area_aporta_id int [note: 'área que lo agregó (CERI, policía, barandilla, jurídico, plataforma…)']
+  aportado_en timestamptz [default: `now()`]
+}
+
+
+// ============================== DOCUMENTOS Y PROCESOS ==============================
+Table iph {
+  iph_id uuid [pk, default: `gen_random_uuid()`]
+  evento_id uuid [not null, ref: > evento.evento_id]
+  tipo iph_tipo [note: 'nulo mientras es borrador cascarón; lo asigna jurídico']
+  fuero_id int [ref: > cat_fuero.fuero_id]
+  autoridad_destino_id int [ref: > cat_autoridad.autoridad_id, note: 'MP Federal, MP Estatal, Justicia Cívica…']
+  folio_referencia varchar
+  folio_sistema varchar [unique]
+  no_remision varchar
+  no_expediente varchar
+  fecha_puesta date
+  hora_puesta time
+  agente_puesta_id uuid [ref: > agente_involucrado.agente_involucrado_id, note: 'rol: realiza la puesta a disposición']
+  fiscal_nombre varchar
+  fiscal_cargo varchar
+  fiscal_adscripcion varchar
+  estatus iph_estatus [not null, default: 'borrador']
+  narrativa text [note: 'solo cuando el evento tiene más de un IPH']
+  version int [not null, default: 1]
+  aportado_por uuid [note: 'usuario que lo agregó al evento']
+  area_aporta_id int [note: 'área que lo agregó (CERI, policía, barandilla, jurídico, plataforma…)']
+  aportado_en timestamptz [default: `now()`]
+  indexes { evento_id }
+  Note: 'Un evento puede tener varios IPH (por delito, por falta, por fuero). Nace en borrador y se completa conforme se agregan detenidos y aseguramientos. Un aseguramiento sin detenido genera su propio IPH.'
+}
+
+Table parte_informativa {
+  parte_informativa_id uuid [pk, default: `gen_random_uuid()`]
+  evento_id uuid [not null, ref: > evento.evento_id]
+  iph_id uuid [ref: > iph.iph_id]
+  folio varchar
+  tipo varchar
+  estatus varchar
+  agente_capturista_id uuid [ref: > agente_involucrado.agente_involucrado_id]
+  aportado_por uuid [note: 'usuario que lo agregó al evento']
+  area_aporta_id int [note: 'área que lo agregó (CERI, policía, barandilla, jurídico, plataforma…)']
+  aportado_en timestamptz [default: `now()`]
+  Note: 'Número y nombre del elemento ya no se capturan: salen del agente involucrado. Aprovecha la narrativa del evento.'
+}
+
+Table uso_fuerza {
+  uso_fuerza_id uuid [pk, default: `gen_random_uuid()`]
+  evento_id uuid [not null, ref: > evento.evento_id]
+  nivel_fuerza_id int [ref: > cat_nivel_fuerza.nivel_fuerza_id]
+  descripcion text
+  asistencia_medica boolean
+  descripcion_asistencia_medica text
+  lesionados_autoridad int
+  lesionados_personas int
+  fallecidos_autoridad int
+  fallecidos_personas int
+  aportado_por uuid [note: 'usuario que lo agregó al evento']
+  area_aporta_id int [note: 'área que lo agregó (CERI, policía, barandilla, jurídico, plataforma…)']
+  aportado_en timestamptz [default: `now()`]
+  Note: 'Solo existe si se declaró uso de la fuerza. Alimenta el anexo del IPH. (Pendiente: mapear el informe completo.)'
+}
+
+Table uso_fuerza_agente {
+  uso_fuerza_id uuid [ref: > uso_fuerza.uso_fuerza_id]
+  agente_involucrado_id uuid [ref: > agente_involucrado.agente_involucrado_id]
+  indexes { (uso_fuerza_id, agente_involucrado_id) [pk] }
+}
+
+Table uso_fuerza_detenido {
+  uso_fuerza_id uuid [ref: > uso_fuerza.uso_fuerza_id]
+  detenido_id uuid [ref: > detenido.detenido_id]
+  indexes { (uso_fuerza_id, detenido_id) [pk] }
+}
+
+Table entrega_hechos {
+  entrega_id uuid [pk, default: `gen_random_uuid()`]
+  evento_id uuid [not null, ref: > evento.evento_id]
+  autoridad_id int [ref: > cat_autoridad.autoridad_id]
+  fecha_hora timestamptz
+  descripcion text
+  aportado_por uuid [note: 'usuario que lo agregó al evento']
+  area_aporta_id int [note: 'área que lo agregó (CERI, policía, barandilla, jurídico, plataforma…)']
+  aportado_en timestamptz [default: `now()`]
+  Note: 'Entidad propia del evento; obliga a parte informativa.'
+}
+
+Table emergencia {
+  emergencia_id uuid [pk, default: `gen_random_uuid()`]
+  evento_id uuid [not null, ref: > evento.evento_id]
+  clasificacion_id int [ref: > cat_clasificacion_emergencia.clasificacion_emergencia_id]
+  tipo_emergencia_id int [ref: > cat_tipo_emergencia.tipo_emergencia_id]
+  subtipo varchar
+  descripcion text
+  aportado_por uuid [note: 'usuario que lo agregó al evento']
+  area_aporta_id int [note: 'área que lo agregó (CERI, policía, barandilla, jurídico, plataforma…)']
+  aportado_en timestamptz [default: `now()`]
+  Note: '"Atención a emergencia": resultado del evento. No confundir con "llamada de emergencia", que es un tipo de origen.'
+}
+
+
+// ============================== ASEGURAMIENTO Y BIENES ==============================
+Table aseguramiento {
+  aseguramiento_id uuid [pk, default: `gen_random_uuid()`]
+  evento_id uuid [not null, ref: > evento.evento_id]
+  iph_id uuid [ref: > iph.iph_id, note: 'IPH al que se enruta por autoridad']
+  descripcion text
+  aportado_por uuid [note: 'usuario que lo agregó al evento']
+  area_aporta_id int [note: 'área que lo agregó (CERI, policía, barandilla, jurídico, plataforma…)']
+  aportado_en timestamptz [default: `now()`]
+  Note: 'Agrupa los bienes asegurados. Con o sin detenido.'
+}
+
+Table arma {
+  arma_id uuid [pk, default: `gen_random_uuid()`]
+  aseguramiento_id uuid [not null, ref: > aseguramiento.aseguramiento_id, note: 'siempre aseguramiento']
+  subtipo arma_subtipo [not null]
+  clasificacion_arma_id int [ref: > cat_clasificacion_arma.clasificacion_arma_id]
+  tipo_arma_id int [ref: > cat_tipo_arma.tipo_arma_id]
+  nombre_arma_id int [ref: > cat_nombre_arma.nombre_arma_id]
+  calibre_id int [ref: > cat_calibre.calibre_id, note: 'nulo si es blanca']
+  matricula varchar
+  serie varchar
+  color varchar
+  cantidad int [default: 1, note: 'una fila por arma; el parte obtiene la cantidad por conteo']
+  descripcion text
+  procedencia_hallazgo_id int [ref: > cat_procedencia_hallazgo.procedencia_hallazgo_id, note: 'aportación / lugar / persona / vehículo']
+  ubicacion_hallazgo varchar
+  agente_asegura_id uuid [ref: > agente_involucrado.agente_involucrado_id, note: 'rol: asegura el bien']
+  destino varchar
+}
+
+Table sustancia {
+  sustancia_id uuid [pk, default: `gen_random_uuid()`]
+  aseguramiento_id uuid [not null, ref: > aseguramiento.aseguramiento_id, note: 'siempre aseguramiento']
+  categoria_sustancia_id int [ref: > cat_categoria_sustancia.categoria_sustancia_id]
+  tipo_sustancia_id int [ref: > cat_tipo_sustancia.tipo_sustancia_id]
+  sustancia_especifique varchar
+  unidad_peso varchar [note: 'gramos o kilogramos']
+  cantidad_peso decimal(14,3)
+  unidad_presentacion_id int [ref: > cat_unidad_presentacion.unidad_presentacion_id]
+  cantidad_presentacion decimal(14,3)
+  cantidad_gramos decimal(14,3) [note: 'calculado']
+  cantidad_kg decimal(14,3) [note: 'calculado']
+  descripcion text
+  procedencia_hallazgo_id int [ref: > cat_procedencia_hallazgo.procedencia_hallazgo_id, note: 'aportación / lugar / persona / vehículo']
+  ubicacion_hallazgo varchar
+  agente_asegura_id uuid [ref: > agente_involucrado.agente_involucrado_id, note: 'rol: asegura el bien']
+  destino varchar
+}
+
+Table objeto {
+  objeto_id uuid [pk, default: `gen_random_uuid()`]
+  aseguramiento_id uuid [ref: > aseguramiento.aseguramiento_id, note: 'aseguramiento O resguardo (check: uno u otro)']
+  resguardo_id uuid [ref: > resguardo.resguardo_id]
+  tipo objeto_tipo [not null, default: 'otro', note: 'dinero = objeto especial con trato propio']
+  tipo_objeto_id int [ref: > cat_tipo_objeto.tipo_objeto_id]
+  objeto_especifique varchar
+  cantidad decimal(14,2)
+  unidad_medida_id int [ref: > cat_unidad_medida.unidad_medida_id, note: 'pieza, litros, kg, pesos, dólares']
+  descripcion text
+  procedencia_hallazgo_id int [ref: > cat_procedencia_hallazgo.procedencia_hallazgo_id, note: 'aportación / lugar / persona / vehículo']
+  ubicacion_hallazgo varchar
+  agente_asegura_id uuid [ref: > agente_involucrado.agente_involucrado_id, note: 'rol: asegura el bien']
+  destino varchar
+}
+
+Table vehiculo {
+  vehiculo_id uuid [pk, default: `gen_random_uuid()`]
+  aseguramiento_id uuid [ref: > aseguramiento.aseguramiento_id, note: 'aseguramiento O resguardo, o ninguno si solo se inspeccionó']
+  resguardo_id uuid [ref: > resguardo.resguardo_id]
+  evento_id uuid [not null, ref: > evento.evento_id]
+  inspeccionado boolean [default: false]
+  fecha_hora_inspeccion timestamptz
+  tipo_vehiculo_id int [ref: > cat_tipo_vehiculo.tipo_vehiculo_id]
+  procedencia varchar [note: 'nacional / extranjero']
+  uso varchar [note: 'particular / transporte público / carga']
+  marca_id int [ref: > cat_marca_vehiculo.marca_vehiculo_id]
+  submarca varchar
+  modelo varchar
+  color_id int [ref: > cat_color.color_id]
+  placas varchar
+  entidad_emplacado varchar
+  num_serie varchar
+  situacion_id int [ref: > cat_situacion_vehiculo.situacion_vehiculo_id]
+  motivo_aseguramiento_id int [ref: > cat_motivo_aseguramiento_vehiculo.motivo_aseguramiento_vehiculo_id]
+  lugar_deposito_id int [ref: > cat_lugar_deposito.lugar_deposito_id]
+  descripcion text
+  procedencia_hallazgo_id int [ref: > cat_procedencia_hallazgo.procedencia_hallazgo_id, note: 'aportación / lugar / persona / vehículo']
+  ubicacion_hallazgo varchar
+  agente_asegura_id uuid [ref: > agente_involucrado.agente_involucrado_id, note: 'rol: asegura el bien']
+}
+
+
+// ============================== POR VALIDAR (salen del mapeo, no están en la v1.0) ==============================
+Table testigo_bien {
+  testigo_id uuid [pk, default: `gen_random_uuid()`]
+  bien_tipo bien_tipo [not null]
+  bien_id uuid [not null, note: 'arma_id, sustancia_id u objeto_id según bien_tipo (relación polimórfica)']
+  orden smallint [note: '1 o 2']
+  nombre varchar
+  apellido_paterno varchar
+  apellido_materno varchar
+  Note: 'POR VALIDAR: hasta 2 testigos por bien asegurado. ¿Persona maestra o dato libre?'
+}
+
+Table pertenencia_detenido {
+  pertenencia_id uuid [pk, default: `gen_random_uuid()`]
+  detenido_id uuid [not null, ref: > detenido.detenido_id]
+  nombre varchar
+  descripcion text
+  destino varchar
+  Note: 'POR VALIDAR: ¿la captura SIPROB al ingreso a barandilla?'
+}
+
+Table contacto_familiar_detenido {
+  contacto_id uuid [pk, default: `gen_random_uuid()`]
+  detenido_id uuid [not null, ref: > detenido.detenido_id]
+  nombre varchar
+  apellido_paterno varchar
+  apellido_materno varchar
+  telefono varchar
+  Note: 'POR VALIDAR: probable dato de SIPROB.'
+}
+
+Table detenido_condicion {
+  detenido_id uuid [pk, ref: - detenido.detenido_id]
+  descripcion_fisica text
+  lesiones boolean
+  padecimiento boolean
+  tipo_padecimiento varchar
+  grupo_vulnerable boolean
+  cual_grupo_vulnerable varchar
+  grupo_delictivo boolean
+  cual_grupo_delictivo varchar
+  atencion_medica boolean
+  lugar_atencion_medica varchar
+  Note: 'POR VALIDAR: datos sensibles; acceso restringido. Si SIPROB ya los captura, se referencian.'
+}
+
+Table traslado_detenido {
+  traslado_id uuid [pk, default: `gen_random_uuid()`]
+  detenido_id uuid [not null, ref: > detenido.detenido_id]
+  destino_traslado_id int [ref: > cat_destino_traslado.destino_traslado_id, note: 'fiscalía, hospital, otra dependencia']
+  dependencia_otra varchar
+  observaciones text
+  Note: 'POR VALIDAR: ruta y medio de traslado.'
+}
+
+Table lectura_derechos_menor {
+  lectura_id uuid [pk, default: `gen_random_uuid()`]
+  detenido_id uuid [not null, ref: > detenido.detenido_id]
+  dependencia varchar
+  entidad varchar
+  ciudad varchar
+  lugar varchar
+  fecha_hora timestamptz
+  comprendio boolean
+  notas text
+  Note: 'POR VALIDAR: anexo de lectura de derechos del menor infractor (IPH Delitos).'
+}
+
+Table iph_inspeccion_lugar {
+  iph_id uuid [pk, ref: - iph.iph_id]
+  inspeccion boolean
+  inspeccion_positiva boolean
+  preservacion boolean
+  priorizacion boolean
+  riesgo_tipo varchar [note: 'sociales / naturales']
+  riesgo_especificar varchar
+  Note: 'POR VALIDAR: ¿atributo del IPH o del evento?'
+}
+
+
+// ============================== SEGURIDAD Y AUDITORÍA ==============================
+Table usuario {
+  usuario_id uuid [pk, default: `gen_random_uuid()`]
+  numero_empleado varchar
+  nombre varchar [not null]
+  area_id int [ref: > cat_area.area_id]
+  activo boolean [default: true]
+  Note: 'RBAC por área. Plataforma cierra eventos; jurídico los reabre.'
+}
+
+Table auditoria_log {
+  log_id bigint [pk, increment]
+  tabla varchar [not null]
+  registro_id uuid
+  evento_id uuid [ref: > evento.evento_id, note: 'permite reconstruir la historia de un evento']
+  operacion varchar [note: 'INSERT / UPDATE / FUSION']
+  valores_anteriores jsonb
+  valores_nuevos jsonb
+  usuario_id uuid [ref: > usuario.usuario_id]
+  ocurrido_en timestamptz [default: `now()`]
+  indexes { (evento_id, ocurrido_en) }
+  Note: 'Inmutable; poblada por triggers en cada escritura.'
+}
+
+
+// ============================== CATÁLOGOS (administrables por la SSPM, con control de versiones) ==============================
+Table cat_tipo_origen {
+  tipo_origen_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+  Note: 'Cómo nace el evento: llamada de emergencia / despacho CERI, recorrido, patrullaje, operativo (propio o conjunto), diligencia de acompañamiento.'
+}
+
+Table cat_medio_conocimiento {
+  medio_conocimiento_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+  Note: 'Por qué medio se supo del hecho: CERI, comunitario, recorrido, monitoreo, ciudadano. Distinto de tipo_origen.'
+}
+
+Table cat_motivo {
+  motivo_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+  Note: 'Motivo de la participación policial. Puede llevar plantilla de datos adicionales.'
+}
+
+Table cat_componente_evento {
+  componente_evento_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+  Note: 'Piezas que un evento puede tener: detención, aseguramiento, resguardo, atención a emergencia, entrega de hechos, atención a víctimas, uso de la fuerza, parte informativa, IPH.'
+}
+
+Table cat_area {
+  area_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+  Note: 'Áreas con permisos distintos: CERI/origen, policía, coordinación, barandilla, jurídico, plataforma, analista.'
+}
+
+Table cat_autoridad {
+  autoridad_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  ambito varchar [note: 'municipal / estatal / federal']
+  activo boolean [default: true]
+  Note: 'Autoridades receptoras o participantes (MP Federal, MP Estatal, Justicia Cívica…).'
+}
+
+Table cat_rol_agente {
+  rol_agente_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+  Note: 'Rol del agente en el evento (primer respondiente, responsable de turno, realiza la puesta a disposición, asegura el bien…). Configurable.'
+}
+
+Table cat_sexo {
+  sexo_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+}
+
+Table cat_pais {
+  pais_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+}
+
+Table cat_etnia {
+  etnia_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+}
+
+Table cat_tipo_detencion {
+  tipo_detencion_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+}
+
+Table cat_fuero {
+  fuero_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+  Note: 'Federal, común/estatal, justicia cívica local.'
+}
+
+Table cat_modalidad_delito {
+  modalidad_delito_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+}
+
+Table cat_falta_administrativa {
+  falta_administrativa_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+}
+
+Table cat_nivel_fuerza {
+  nivel_fuerza_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+  Note: 'Escala de uso de la fuerza.'
+}
+
+Table cat_unidad_especializada {
+  unidad_especializada_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+}
+
+Table cat_atencion_legal {
+  atencion_legal_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+}
+
+Table cat_atencion_psicologica {
+  atencion_psicologica_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+}
+
+Table cat_atencion_medica {
+  atencion_medica_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+}
+
+Table cat_institucion_resguardo {
+  institucion_resguardo_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+}
+
+Table cat_clasificacion_emergencia {
+  clasificacion_emergencia_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+}
+
+Table cat_procedencia_hallazgo {
+  procedencia_hallazgo_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+}
+
+Table cat_destino_traslado {
+  destino_traslado_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+}
+
+Table cat_clasificacion_arma {
+  clasificacion_arma_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+}
+
+Table cat_tipo_arma {
+  tipo_arma_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+  Note: 'Hoy el IPH solo distingue corta/larga y el parte tiene otra clasificación: unificar.'
+}
+
+Table cat_nombre_arma {
+  nombre_arma_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+}
+
+Table cat_calibre {
+  calibre_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+}
+
+Table cat_categoria_sustancia {
+  categoria_sustancia_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+  Note: 'Categoría del IPH: narcótico, hidrocarburo, otro. El dinero NO va aquí: es objeto.'
+}
+
+Table cat_tipo_sustancia {
+  tipo_sustancia_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+}
+
+Table cat_unidad_presentacion {
+  unidad_presentacion_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+}
+
+Table cat_tipo_objeto {
+  tipo_objeto_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+}
+
+Table cat_unidad_medida {
+  unidad_medida_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+}
+
+Table cat_tipo_vehiculo {
+  tipo_vehiculo_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+}
+
+Table cat_marca_vehiculo {
+  marca_vehiculo_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+}
+
+Table cat_color {
+  color_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+}
+
+Table cat_situacion_vehiculo {
+  situacion_vehiculo_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+  Note: 'Con reporte de robo, sin reporte, no es posible saberlo.'
+}
+
+Table cat_motivo_aseguramiento_vehiculo {
+  motivo_aseguramiento_vehiculo_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+}
+
+Table cat_lugar_deposito {
+  lugar_deposito_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+}
+
+Table cat_agrupamiento {
+  agrupamiento_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  padre_id int [ref: > cat_agrupamiento.agrupamiento_id]
+  activo boolean [default: true]
+  Note: 'Estructura jerárquica de agrupamientos.'
+}
+
+Table cat_colonia {
+  colonia_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  codigo_postal varchar(5)
+  activo boolean [default: true]
+  Note: 'Prevalece sobre la georreferencia.'
+}
+
+Table cat_distrito {
+  distrito_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  geom "geometry(MultiPolygon,4326)"
+  activo boolean [default: true]
+  Note: 'Capas ya resueltas por la SSPM.'
+}
+
+Table cat_cuadrante {
+  cuadrante_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  geom "geometry(MultiPolygon,4326)"
+  activo boolean [default: true]
+}
+
+Table cat_sector {
+  sector_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  geom "geometry(MultiPolygon,4326)"
+  activo boolean [default: true]
+}
+
+Table cat_delito {
+  delito_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  clasificacion varchar
+  activo boolean [default: true]
+  Note: 'Catálogo homologado a la informática nacional.'
+}
+
+Table cat_subdelito {
+  subdelito_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  delito_id int [ref: > cat_delito.delito_id]
+  activo boolean [default: true]
+}
+
+Table cat_tipo_emergencia {
+  tipo_emergencia_id int [pk, increment]
+  clave varchar
+  nombre varchar [not null]
+  activo boolean [default: true]
+}
+
+
+TableGroup "1 Evento (núcleo)" {
+  evento
+  evento_componente_estado
+  evento_agrupamiento
+  evento_autoridad
+  evento_fusion
+  evento_preregistro_ceri
+  ubicacion
+  v_evento_indicadores
+}
+TableGroup "2 Agentes" {
+  agente_involucrado
+  agente_involucrado_rol
+  mongo_agente
+}
+TableGroup "3 Personas" {
+  persona
+  participacion_persona
+  part_victima
+  part_resguardada
+  atencion_especializada
+  resguardo
+}
+TableGroup "4 Detención y legal" {
+  siprob_detenido
+  detencion
+  detenido
+  delito
+  falta_administrativa
+  orden_aprehension
+}
+TableGroup "5 Documentos y procesos" {
+  iph
+  parte_informativa
+  uso_fuerza
+  uso_fuerza_agente
+  uso_fuerza_detenido
+  entrega_hechos
+  emergencia
+}
+TableGroup "6 Aseguramiento y bienes" {
+  aseguramiento
+  arma
+  sustancia
+  objeto
+  vehiculo
+}
+TableGroup "7 Por validar" {
+  testigo_bien
+  pertenencia_detenido
+  contacto_familiar_detenido
+  detenido_condicion
+  traslado_detenido
+  lectura_derechos_menor
+  iph_inspeccion_lugar
+}
+TableGroup "8 Seguridad y auditoría" {
+  usuario
+  auditoria_log
+}

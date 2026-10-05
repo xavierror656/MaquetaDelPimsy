@@ -1,0 +1,323 @@
+// ============================================================================
+// SSPM MongoDB - Diagrama lógico para dbdiagram.io
+// Solo vistas ER + ParteInformativa como tabla principal
+// Fuente: sspm.ParteInformativa -> sspm_vistas.mv_er_*
+// Nota: MongoDB no tiene FK reales; estas relaciones son lógicas para análisis.
+// ============================================================================
+
+Project SSPM_MongoDB_Vistas_ER {
+  database_type: 'MongoDB lógico / DBML para dbdiagram.io'
+  Note: 'Diagrama lógico de colecciones materializadas ER generadas desde sspm.ParteInformativa. Las relaciones usan parte_informativa_id, folio, id_iph e id_detenido.'
+}
+
+// ============================================================================
+// PRINCIPAL / ORIGEN
+// ============================================================================
+
+Table parte_informativa {
+  _id varchar [pk, note: 'ObjectId original de MongoDB. Llave principal lógica del documento Parte Informativa.']
+  id_iph varchar [note: 'Identificador IPH/Vista Social cuando existe. Puede venir vacío o nulo.']
+  folio varchar [note: 'Folio operativo de la Parte Informativa. Campo muy usado para cruces entre vistas y reportes.']
+  num_folio varchar [note: 'Número de folio alternativo o consecutivo.']
+  numero_elemento varchar [note: 'Número de elemento que captura o genera la PI.']
+  elemento varchar [note: 'Nombre o referencia del elemento capturista.']
+  tipo varchar [note: 'Tipo de Parte Informativa o clasificación general del documento.']
+  distrito varchar [note: 'Distrito del evento registrado en la PI.']
+  estatus varchar [note: 'Estatus del documento.']
+  created_at datetime [note: 'Fecha de creación del documento origen.']
+  updated_at datetime [note: 'Fecha de última actualización del documento origen.']
+
+  campos array [note: 'Array genérico de campos PI_1..PI_53. De aquí se extraen fecha, hora, turno, ubicación, narrativa, coordenadas, motivo, etc.']
+  agentes array [note: 'Array de agentes participantes. Se desnormaliza hacia mv_er_agentes.']
+  detenidos array [note: 'Array de personas detenidas. Se desnormaliza hacia mv_er_detenidos.']
+  victimas array [note: 'Array de víctimas. Se desnormaliza hacia mv_er_victimas.']
+  aseg_armas array [note: 'Array de armas aseguradas. Se desnormaliza hacia mv_er_armas.']
+  ins_vehiculos array [note: 'Array de vehículos involucrados o asegurados. Se desnormaliza hacia mv_er_vehiculos.']
+  aseg_sustancias array [note: 'Array de sustancias aseguradas. Se desnormaliza hacia mv_er_sustancias.']
+  aseg_objetos array [note: 'Array de objetos asegurados. Se desnormaliza hacia mv_er_objetos.']
+  emergencias array [note: 'Array de emergencias atendidas. Se desnormaliza hacia mv_er_emergencias.']
+  falta_admin array [note: 'Array de faltas administrativas. Se desnormaliza hacia mv_er_faltas_admin.']
+
+  Note: 'Colección principal: sspm.ParteInformativa. Las vistas ER nacen haciendo unwind de sus arrays y proyectando campos comunes del evento.'
+}
+
+// ============================================================================
+// VISTAS ER / ENTIDADES RELACIONADAS
+// ============================================================================
+
+Table mv_er_agentes {
+  _id varchar [pk, note: 'ID compuesto: ParteInformativa._id + índice del agente en el array.']
+  parte_informativa_id varchar [not null, note: 'Referencia lógica a parte_informativa._id.']
+  id_iph varchar [note: 'Identificador IPH heredado de ParteInformativa.']
+  folio varchar [note: 'Folio heredado de la Parte Informativa.']
+  fecha_evento date [note: 'Fecha del evento extraída de campos.PI_8.']
+  distrito varchar [note: 'Distrito del evento.']
+  turno varchar [note: 'Turno extraído de campos.PI_7.']
+
+  id_agente varchar [note: 'Identificador interno del agente.']
+  numero_empleado varchar [note: 'Número de empleado del agente.']
+  nombre varchar [note: 'Nombre del agente.']
+  apellido_paterno varchar [note: 'Apellido paterno del agente.']
+  apellido_materno varchar [note: 'Apellido materno del agente.']
+  distrito_agente varchar [note: 'Distrito asignado al agente.']
+  puesto varchar [note: 'Puesto o cargo del agente.']
+  unidad varchar [note: 'Unidad policial asociada al agente.']
+
+  Note: 'Un documento por agente participante en una Parte Informativa.'
+}
+
+Table mv_er_detenidos {
+  _id varchar [pk, note: 'ID compuesto: ParteInformativa._id + índice del detenido en el array.']
+  parte_informativa_id varchar [not null, note: 'Referencia lógica a parte_informativa._id.']
+  id_iph varchar [note: 'Identificador IPH heredado.']
+  folio varchar [note: 'Folio de la Parte Informativa.']
+  fecha_evento date [note: 'Fecha del evento.']
+  distrito varchar [note: 'Distrito del evento.']
+  sector varchar [note: 'Sector del evento extraído de campos.PI_4.']
+  colonia varchar [note: 'Colonia del evento extraída de campos.PI_11.']
+  latitud double [note: 'Latitud del evento extraída de campos.PI_52.']
+  longitud double [note: 'Longitud del evento extraída de campos.PI_53 y normalizada a negativo cuando aplica.']
+
+  id_detenido varchar [note: 'Identificador de la persona detenida.']
+  nombre varchar [note: 'Nombre del detenido.']
+  apellido_paterno varchar [note: 'Apellido paterno del detenido.']
+  apellido_materno varchar [note: 'Apellido materno del detenido.']
+  fecha_nacimiento date [note: 'Fecha de nacimiento del detenido.']
+  edad int [note: 'Edad del detenido.']
+  genero varchar [note: 'Género del detenido.']
+  pais_origen varchar [note: 'País de origen del detenido.']
+  estado_origen varchar [note: 'Estado de origen del detenido.']
+  ciudad_origen varchar [note: 'Ciudad de origen del detenido.']
+  domicilio varchar [note: 'Domicilio declarado del detenido.']
+  situacion_juridica varchar [note: 'Situación jurídica del detenido.']
+  presentado_ante varchar [note: 'Autoridad ante la cual fue presentado.']
+  fuero varchar [note: 'Fuero relacionado: municipal, estatal, federal u otro.']
+  atencion_medica varchar [note: 'Indica si recibió atención médica.']
+  lugar_atencion_medica varchar [note: 'Lugar donde recibió atención médica.']
+  tiene_clasi_hechos boolean [note: 'Indica si el detenido tiene clasificación de hechos anidada.']
+  cantidad_clasi_hechos int [note: 'Cantidad de clasificaciones de hechos asociadas al detenido.']
+
+  Note: 'Un documento por detenido relacionado con una Parte Informativa.'
+}
+
+Table mv_er_victimas {
+  _id varchar [pk, note: 'ID compuesto: ParteInformativa._id + índice de víctima.']
+  parte_informativa_id varchar [not null, note: 'Referencia lógica a parte_informativa._id.']
+  id_iph varchar [note: 'Identificador IPH heredado.']
+  folio varchar [note: 'Folio de la Parte Informativa.']
+  fecha_evento date [note: 'Fecha del evento.']
+  distrito varchar [note: 'Distrito del evento.']
+  sector varchar [note: 'Sector del evento.']
+  colonia varchar [note: 'Colonia del evento.']
+  latitud double [note: 'Latitud del evento.']
+  longitud double [note: 'Longitud del evento.']
+
+  nombre varchar [note: 'Nombre de la víctima.']
+  edad int [note: 'Edad de la víctima.']
+  genero varchar [note: 'Género de la víctima.']
+  delito varchar [note: 'Delito relacionado con la víctima.']
+  domicilio varchar [note: 'Domicilio de la víctima.']
+  pais_origen varchar [note: 'País de origen de la víctima.']
+  estado_origen varchar [note: 'Estado de origen de la víctima.']
+  ciudad_origen varchar [note: 'Ciudad de origen de la víctima.']
+  etnia varchar [note: 'Etnia registrada, si aplica.']
+  canalizacion varchar [note: 'Canalización o institución a la que fue derivada.']
+  atencion_legal varchar [note: 'Atención legal recibida.']
+  atencion_psicologica varchar [note: 'Atención psicológica recibida.']
+  atencion_medica varchar [note: 'Atención médica recibida.']
+
+  Note: 'Un documento por víctima reportada en una Parte Informativa.'
+}
+
+Table mv_er_armas {
+  _id varchar [pk, note: 'ID compuesto: ParteInformativa._id + índice del arma.']
+  parte_informativa_id varchar [not null, note: 'Referencia lógica a parte_informativa._id.']
+  id_iph varchar [note: 'Identificador IPH heredado.']
+  folio varchar [note: 'Folio de la Parte Informativa.']
+  fecha_evento date [note: 'Fecha del evento.']
+  distrito varchar [note: 'Distrito del evento.']
+  sector varchar [note: 'Sector del evento.']
+  colonia varchar [note: 'Colonia del evento.']
+  latitud double [note: 'Latitud del evento.']
+  longitud double [note: 'Longitud del evento.']
+
+  clasificacion_arma varchar [note: 'Clasificación general del arma.']
+  tipo_arma varchar [note: 'Tipo de arma.']
+  nombre_arma varchar [note: 'Nombre o descripción corta del arma.']
+  calibre_arma varchar [note: 'Calibre del arma.']
+  cantidad_arma int [note: 'Cantidad de armas aseguradas en este registro.']
+  descripcion_arma text [note: 'Descripción detallada del arma.']
+
+  Note: 'Un documento por arma asegurada en una Parte Informativa.'
+}
+
+Table mv_er_vehiculos {
+  _id varchar [pk, note: 'ID compuesto: ParteInformativa._id + índice del vehículo.']
+  parte_informativa_id varchar [not null, note: 'Referencia lógica a parte_informativa._id.']
+  id_iph varchar [note: 'Identificador IPH heredado.']
+  folio varchar [note: 'Folio de la Parte Informativa.']
+  fecha_evento date [note: 'Fecha del evento.']
+  distrito varchar [note: 'Distrito del evento.']
+  sector varchar [note: 'Sector del evento.']
+  colonia varchar [note: 'Colonia del evento.']
+  latitud double [note: 'Latitud del evento.']
+  longitud double [note: 'Longitud del evento.']
+
+  id_vehiculo varchar [note: 'Identificador del vehículo.']
+  tipo varchar [note: 'Tipo de vehículo.']
+  marca varchar [note: 'Marca del vehículo.']
+  submarca varchar [note: 'Submarca o línea del vehículo.']
+  modelo varchar [note: 'Modelo/año del vehículo.']
+  num_serie varchar [note: 'Número de serie o VIN.']
+  placas varchar [note: 'Placas del vehículo.']
+  entidad_emplacado varchar [note: 'Entidad federativa de emplacado.']
+  motivo_aseguramiento varchar [note: 'Motivo por el cual el vehículo fue asegurado o registrado.']
+  lugar_deposito varchar [note: 'Lugar de depósito del vehículo.']
+  descripcion_vehiculo text [note: 'Descripción adicional del vehículo.']
+  color varchar [note: 'Color del vehículo.']
+
+  Note: 'Un documento por vehículo involucrado o asegurado.'
+}
+
+Table mv_er_sustancias {
+  _id varchar [pk, note: 'ID compuesto: ParteInformativa._id + índice de sustancia.']
+  parte_informativa_id varchar [not null, note: 'Referencia lógica a parte_informativa._id.']
+  id_iph varchar [note: 'Identificador IPH heredado.']
+  folio varchar [note: 'Folio de la Parte Informativa.']
+  fecha_evento date [note: 'Fecha del evento.']
+  distrito varchar [note: 'Distrito del evento.']
+  sector varchar [note: 'Sector del evento.']
+  colonia varchar [note: 'Colonia del evento.']
+  latitud double [note: 'Latitud del evento.']
+  longitud double [note: 'Longitud del evento.']
+
+  tipo_sustancia varchar [note: 'Tipo de sustancia asegurada.']
+  especifique_sustancia varchar [note: 'Especificación cuando el tipo requiere detalle.']
+  unidad_medida varchar [note: 'Unidad de medida capturada.']
+  especifique_unidad_medida varchar [note: 'Detalle de unidad de medida cuando aplica.']
+  cantidad_sustancia double [note: 'Cantidad de sustancia.']
+  peso_en varchar [note: 'Unidad o forma en que se expresa el peso.']
+  cantidad_peso double [note: 'Cantidad de peso capturada.']
+  cantidad_gramos double [note: 'Cantidad convertida o expresada en gramos.']
+  cantidad_kg double [note: 'Cantidad convertida o expresada en kilogramos.']
+
+  Note: 'Un documento por sustancia decomisada.'
+}
+
+Table mv_er_objetos {
+  _id varchar [pk, note: 'ID compuesto: ParteInformativa._id + índice del objeto.']
+  parte_informativa_id varchar [not null, note: 'Referencia lógica a parte_informativa._id.']
+  id_iph varchar [note: 'Identificador IPH heredado.']
+  folio varchar [note: 'Folio de la Parte Informativa.']
+  fecha_evento date [note: 'Fecha del evento.']
+  distrito varchar [note: 'Distrito del evento.']
+  sector varchar [note: 'Sector del evento.']
+  colonia varchar [note: 'Colonia del evento.']
+  latitud double [note: 'Latitud del evento.']
+  longitud double [note: 'Longitud del evento.']
+
+  tipo_objeto varchar [note: 'Tipo de objeto asegurado.']
+  especifique_objeto varchar [note: 'Especificación del objeto cuando aplica.']
+  cantidad_objeto int [note: 'Cantidad de objetos asegurados.']
+  unidad_medida varchar [note: 'Unidad de medida del objeto.']
+
+  Note: 'Un documento por objeto asegurado.'
+}
+
+Table mv_er_emergencias {
+  _id varchar [pk, note: 'ID compuesto: ParteInformativa._id + índice de emergencia.']
+  parte_informativa_id varchar [not null, note: 'Referencia lógica a parte_informativa._id.']
+  id_iph varchar [note: 'Identificador IPH heredado.']
+  folio varchar [note: 'Folio de la Parte Informativa.']
+  fecha_evento date [note: 'Fecha del evento.']
+  distrito varchar [note: 'Distrito del evento.']
+  sector varchar [note: 'Sector del evento.']
+  colonia varchar [note: 'Colonia del evento.']
+  latitud double [note: 'Latitud del evento.']
+  longitud double [note: 'Longitud del evento.']
+
+  descripcion text [note: 'Descripción de la emergencia atendida.']
+  especifique_subtipo varchar [note: 'Detalle del subtipo de emergencia.']
+  clasificacion varchar [note: 'Clasificación de la emergencia.']
+  tipo varchar [note: 'Tipo de emergencia.']
+
+  Note: 'Un documento por emergencia registrada.'
+}
+
+Table mv_er_faltas_admin {
+  _id varchar [pk, note: 'ID compuesto: ParteInformativa._id + índice de falta administrativa.']
+  parte_informativa_id varchar [not null, note: 'Referencia lógica a parte_informativa._id.']
+  id_iph varchar [note: 'Identificador IPH heredado.']
+  folio varchar [note: 'Folio de la Parte Informativa.']
+  fecha_evento date [note: 'Fecha del evento.']
+  distrito varchar [note: 'Distrito del evento.']
+  sector varchar [note: 'Sector del evento.']
+  colonia varchar [note: 'Colonia del evento.']
+  latitud double [note: 'Latitud del evento.']
+  longitud double [note: 'Longitud del evento.']
+
+  clasificacion varchar [note: 'Clasificación de la falta administrativa.']
+  fraccion varchar [note: 'Fracción legal o administrativa relacionada.']
+  descripcion text [note: 'Descripción de la falta administrativa.']
+
+  Note: 'Un documento por falta administrativa registrada.'
+}
+
+Table mv_er_clasi_hechos {
+  _id varchar [pk, note: 'ID compuesto: ParteInformativa._id + índice de detenido + índice de clasificación.']
+  parte_informativa_id varchar [not null, note: 'Referencia lógica a parte_informativa._id.']
+  id_iph varchar [note: 'Identificador IPH heredado.']
+  folio varchar [note: 'Folio de la Parte Informativa.']
+  fecha_evento date [note: 'Fecha del evento.']
+  distrito varchar [note: 'Distrito del evento.']
+  sector varchar [note: 'Sector del evento.']
+  colonia varchar [note: 'Colonia del evento.']
+  latitud double [note: 'Latitud del evento.']
+  longitud double [note: 'Longitud del evento.']
+
+  fuente varchar [note: 'Origen de la clasificación. En el script aparece como detenido cuando viene anidada en detenidos.clasi_hechos.']
+  id_detenido varchar [note: 'Identificador del detenido relacionado con la clasificación de hechos.']
+  nombre_delito varchar [note: 'Nombre del delito principal.']
+  especifique_delito varchar [note: 'Detalle del delito cuando aplica.']
+  clasificacion_delito varchar [note: 'Clasificación del delito.']
+  nombre_subdelito varchar [note: 'Nombre del subdelito.']
+  especifique_subdelito varchar [note: 'Detalle del subdelito cuando aplica.']
+  clasificacion_subdelito varchar [note: 'Clasificación del subdelito.']
+  hubo_violencia varchar [note: 'Indicador de violencia.']
+  modalidad varchar [note: 'Modalidad del hecho.']
+  orden_aprehension varchar [note: 'Indica si existe orden de aprehensión.']
+  mandamiento_judicial varchar [note: 'Mandamiento judicial relacionado.']
+  delito_orden_aprehension varchar [note: 'Delito señalado en la orden de aprehensión.']
+
+  Note: 'Un documento por clasificación de hecho/delito, principalmente desde detenidos.clasi_hechos.'
+}
+
+// ============================================================================
+// RELACIONES LÓGICAS PRINCIPALES
+// ============================================================================
+
+Ref: parte_informativa._id < mv_er_agentes.parte_informativa_id
+Ref: parte_informativa._id < mv_er_detenidos.parte_informativa_id
+Ref: parte_informativa._id < mv_er_victimas.parte_informativa_id
+Ref: parte_informativa._id < mv_er_armas.parte_informativa_id
+Ref: parte_informativa._id < mv_er_vehiculos.parte_informativa_id
+Ref: parte_informativa._id < mv_er_sustancias.parte_informativa_id
+Ref: parte_informativa._id < mv_er_objetos.parte_informativa_id
+Ref: parte_informativa._id < mv_er_emergencias.parte_informativa_id
+Ref: parte_informativa._id < mv_er_faltas_admin.parte_informativa_id
+Ref: parte_informativa._id < mv_er_clasi_hechos.parte_informativa_id
+
+// Relación específica: clasificación de hechos asociada a detenidos.
+Ref: mv_er_detenidos.id_detenido < mv_er_clasi_hechos.id_detenido
+
+// Relaciones alternativas útiles para análisis por folio.
+Ref: parte_informativa.folio < mv_er_agentes.folio
+Ref: parte_informativa.folio < mv_er_detenidos.folio
+Ref: parte_informativa.folio < mv_er_victimas.folio
+Ref: parte_informativa.folio < mv_er_armas.folio
+Ref: parte_informativa.folio < mv_er_vehiculos.folio
+Ref: parte_informativa.folio < mv_er_sustancias.folio
+Ref: parte_informativa.folio < mv_er_objetos.folio
+Ref: parte_informativa.folio < mv_er_emergencias.folio
+Ref: parte_informativa.folio < mv_er_faltas_admin.folio
+Ref: parte_informativa.folio < mv_er_clasi_hechos.folio

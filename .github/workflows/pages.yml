@@ -1,0 +1,48 @@
+name: Publicar maqueta en GitHub Pages
+
+# Publica solo la carpeta maqueta/ (HTML + JS estáticos, sin build).
+# Requisito único: en el repositorio, Settings > Pages > Source = "GitHub Actions".
+on:
+  push:
+    branches: [main]
+    paths:
+      - "maqueta/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  desplegar:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Revisar que existan los archivos de la maqueta
+        run: |
+          for f in index.html app.js esquema.js catalogos.js vendor/alpine.min.js; do
+            test -f "maqueta/$f" || { echo "Falta maqueta/$f"; exit 1; }
+          done
+
+      - name: Configurar Pages
+        uses: actions/configure-pages@v5
+
+      - name: Subir la carpeta maqueta como artefacto
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: maqueta
+
+      - name: Desplegar
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,130 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Página-1" id="eXZCA2DLzJjxpn4sY7hm">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="1700" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="bx6i05NXBmsnY-oChxfv-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="EVENTO" vertex="1">
+          <mxGeometry height="60" width="120" x="100" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="DETENCIONES" vertex="1">
+          <mxGeometry height="60" width="120" x="150" y="560" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="VÍCTIMAS" vertex="1">
+          <mxGeometry height="60" width="120" x="400" y="840" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="ELEMENTOS INVOLUCRADOS" vertex="1">
+          <mxGeometry height="60" width="120" x="400" y="930" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-7" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="ASEGURAMIENTOS" vertex="1">
+          <mxGeometry height="60" width="120" x="150" y="660" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-8" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="RESGUARDOS" vertex="1">
+          <mxGeometry height="60" width="120" x="150" y="750" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-9" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="AGRUPAMIENTOS" vertex="1">
+          <mxGeometry height="60" width="120" x="150" y="930" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-17" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="ATENCIÓN A EMERGENCIAS" vertex="1">
+          <mxGeometry height="60" width="120" x="390" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-18" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="DETENIDOS" vertex="1">
+          <mxGeometry height="60" width="120" x="400" y="560" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-19" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="ARMAS" vertex="1">
+          <mxGeometry height="60" width="120" x="400" y="660" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-20" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="SUSTANCIAS" vertex="1">
+          <mxGeometry height="60" width="120" x="560" y="660" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-21" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="VEHÍCULOS" vertex="1">
+          <mxGeometry height="60" width="120" x="720" y="660" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-22" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="OBJETOS" vertex="1">
+          <mxGeometry height="60" width="120" x="870" y="660" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-23" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="PERSONAS" vertex="1">
+          <mxGeometry height="60" width="120" x="400" y="750" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-25" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="MOTIVO" vertex="1">
+          <mxGeometry height="60" width="120" x="150" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-26" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="DELITOS" vertex="1">
+          <mxGeometry height="60" width="120" x="400" y="470" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-27" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="FALTAS ADMINISTRATIVAS" vertex="1">
+          <mxGeometry height="60" width="120" x="560" y="470" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-28" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="ÓRDENES DE APREHENSIÓN" vertex="1">
+          <mxGeometry height="60" width="120" x="520" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-29" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="REGISTRO DE VÍCTIMAS" vertex="1">
+          <mxGeometry height="60" width="120" x="150" y="840" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-30" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="AUTORIDADES RECEPTORAS" vertex="1">
+          <mxGeometry height="60" width="120" x="1210" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-32" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="BARANDILLA" vertex="1">
+          <mxGeometry height="60" width="120" x="720" y="560" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-34" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="INSTANCIAS RECEPTORAS" vertex="1">
+          <mxGeometry height="60" width="120" x="640" y="790" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-35" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="DILIGENCIA" vertex="1">
+          <mxGeometry height="60" width="120" x="600" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-36" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="FLAGRANCIA" vertex="1">
+          <mxGeometry height="60" width="120" x="800" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-37" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="HECHOS" vertex="1">
+          <mxGeometry height="60" width="120" x="150" y="470" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-39" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="SOLICITUD DE FUERZA PÚBLICA" vertex="1">
+          <mxGeometry height="60" width="120" x="690" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-40" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="EMERGENCIAS" vertex="1">
+          <mxGeometry height="60" width="120" x="720" y="470" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-44" connectable="0" parent="1" style="group" value="" vertex="1">
+          <mxGeometry height="91" width="130" x="560" y="550" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-41" parent="bx6i05NXBmsnY-oChxfv-44" style="shape=image;html=1;verticalLabelPosition=bottom;verticalAlign=top;imageAspect=1;aspect=fixed;image=img/clipart/Gear_128x128.png" value="" vertex="1">
+          <mxGeometry height="61" width="52" x="39" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-42" parent="bx6i05NXBmsnY-oChxfv-44" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Registro de Detención (SIPROB)" vertex="1">
+          <mxGeometry height="10" width="130" y="81" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-46" connectable="0" parent="1" style="group" value="" vertex="1">
+          <mxGeometry height="91" width="130" x="1040" y="590" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-47" parent="bx6i05NXBmsnY-oChxfv-46" style="shape=image;html=1;verticalLabelPosition=bottom;verticalAlign=top;imageAspect=1;aspect=fixed;image=img/clipart/Gear_128x128.png" value="" vertex="1">
+          <mxGeometry height="61" width="52" x="39" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-48" parent="bx6i05NXBmsnY-oChxfv-46" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Registro de IPH" vertex="1">
+          <mxGeometry height="10" width="130" y="81" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-50" connectable="0" parent="1" style="group" value="" vertex="1">
+          <mxGeometry height="91" width="130" x="270" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-51" parent="bx6i05NXBmsnY-oChxfv-50" style="shape=image;html=1;verticalLabelPosition=bottom;verticalAlign=top;imageAspect=1;aspect=fixed;image=img/clipart/Gear_128x128.png" value="" vertex="1">
+          <mxGeometry height="61" width="52" x="39" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-52" parent="bx6i05NXBmsnY-oChxfv-50" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Parte Informativa" vertex="1">
+          <mxGeometry height="10" width="130" y="81" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-57" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="AUTORIDADES PARTICIPANTES" vertex="1">
+          <mxGeometry height="60" width="120" x="150" y="1020" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-59" connectable="0" parent="1" style="group" value="" vertex="1">
+          <mxGeometry height="91" width="130" x="250" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-60" parent="bx6i05NXBmsnY-oChxfv-59" style="shape=image;html=1;verticalLabelPosition=bottom;verticalAlign=top;imageAspect=1;aspect=fixed;image=img/clipart/Gear_128x128.png" value="" vertex="1">
+          <mxGeometry height="61" width="52" x="39" as="geometry" />
+        </mxCell>
+        <mxCell id="bx6i05NXBmsnY-oChxfv-61" parent="bx6i05NXBmsnY-oChxfv-59" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Registro de Evento" vertex="1">
+          <mxGeometry height="10" width="130" y="81" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

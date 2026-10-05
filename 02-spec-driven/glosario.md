@@ -1,0 +1,21 @@
+# Glosario
+
+- **EAP** — Evento de atención policial. Unidad de control del modelo (el evento).
+- **Evento provisional** — Evento creado automáticamente por la Ruta B (`borrador_sin_origen`); plataforma lo concilia.
+- **Preregistro CERI** — Fila importada del reporte de CERI que aún no es evento; no cuenta en estadísticas.
+- **CERI / CAD CERI** — Sistema de despacho del Gobierno Estatal; externo, sin API. De él sale el folio CERI.
+- **SIPROB** — Sistema (Python + PostgreSQL) que controla detenciones, justicia cívica y trabajo social; fuente de verdad del detenido.
+- **SID** — Sistema Integral de Detenciones; legacy, se deja de usar.
+- **IPH** — Informe Policial Homologado. Dos modalidades: Delitos (puesta a disposición ante autoridad penal) y Faltas Administrativas (justicia cívica).
+- **Parte informativa** — Documento de las actuaciones policiales; primer sistema integrador con fines estadísticos.
+- **IUF** — Informe de uso de la fuerza; deriva de la parte informativa. Pendiente de mapear.
+- **RND** — Registro Nacional de Detenidos (identificador que pide el IPH).
+- **Entrega de hechos** — Entrega del caso a otra autoridad.
+- **Atención a emergencia** — Entidad de resultado (no confundir con *llamada de emergencia*, que es un tipo de origen).
+- **Resguardo** — Custodia de personas, vehículos u objetos sin aseguramiento.
+- **Aseguramiento** — Agrupa bienes asegurados (armas, sustancias, objetos, vehículos).
+- **Snapshot (`_snap`)** — Copia congelada de datos que pueden cambiar (adscripción del agente, datos del detenido).
+- **Derivación** — Cálculo de un valor equivalente para otro formulario a partir del dato base (nacionalidad → extranjero / país de origen).
+- **Pieza / componente** — Cada parte que un evento puede tener (detención, aseguramiento, …) con estado `pendiente | registrado | sin_novedad`.
+- **Distrito / cuadrante / sector** — Capas geográficas de la SSPM; se autollenan por punto en polígono.
+- **Plataforma de gestión digital** — Sistema al que pertenecerá PIMSy; contiene el catálogo de agentes (MongoDB).

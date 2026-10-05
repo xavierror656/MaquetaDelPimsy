@@ -1,0 +1,15 @@
+﻿#,Tipo,Hallazgo,Dónde,Propuesta
+1,Conflicto de modelo,"El IPH clasifica ""numerario"" (dinero) como sustancia; la especificación v1.0 lo define como objeto especial.","AD_sustancia, AIAO_sustancia",Mantener dinero como objeto y que el IPH lo muestre como numerario al generarse.
+2,Conflicto de catálogo,"Armas: el parte usa clasificación (fuego, blanca, explosiva), tipo y nombre; el IPH solo usa corta o larga.","AA_Clasificacion_del_Arma, AD_tipo_arma",Catálogo único con clasificación y subtipo; el IPH deriva corta/larga.
+3,Conflicto de catálogo,"Sustancias: el parte lista tipos concretos (cocaína, cristal…); el IPH usa narcótico, hidrocarburo, numerario u otro.","AS_Sustancia, AD_sustancia",Catálogo jerárquico: categoría del IPH y tipo concreto del parte.
+4,Conflicto de granularidad,El IPH inventaría arma por arma con matrícula y serie; el parte registra cantidad.,"AA_Cantidad, AD_id_arma",Un registro por arma; el parte obtiene la cantidad por conteo.
+5,Duplicidad,El bloque del primer respondiente se repite en la sección 2 y en cada anexo.,PR_* (varias veces por IPH),Capturar una vez como rol del agente en el evento.
+6,Duplicidad,El anexo de uso de la fuerza del IPH repite el informe de uso de la fuerza.,"AB_* (Delitos), AUF_* (Faltas)",Tomar el informe como fuente y derivar el anexo.
+7,Duplicidad,Datos del vehículo se capturan en el parte y en el anexo de inspección del IPH.,AV_* vs AC_* / AB_*,Una sola entidad VEHICULO.
+8,Calidad de datos,"En el análisis original, la fila 99 se llama ""sector_evento"", pero su descripción es ""hubo aseguramiento de objetos"". Además, ""Sector_evento"" aparece dos veces.",Parte Informativa N° 14 y 99,Renombrar a Hubo_Aseguramiento_de_Objetos.
+9,Calidad de datos,"Nombres corruptos en IPH Faltas, probablemente por un reemplazo masivo de texto: AB_plABa_veh (placa) y AB_observABiones (observaciones).","IPH Faltas, anexo B",Corregir al normalizar.
+10,Calidad de datos,El prefijo AB significa uso de la fuerza en IPH Delitos y vehículos en IPH Faltas.,IPH Delitos / IPH Faltas,No reutilizar prefijos al nombrar columnas del modelo nuevo.
+11,Calidad de datos,"Campo AA_no_aplica sin descripción clara (probable ""sin alias"").",Ambos IPH,Confirmar y eliminar si es redundante.
+12,Calidad de datos,El nombre del detenido y de la persona quejosa vienen en un solo campo; colonia y números del domicilio van dentro del domicilio.,"DPD_Nombre, DPQOV_Nombre, DPQOV_Domicilio","Estructurar nombre, apellidos y domicilio."
+13,Calidad de datos,"Las hojas de IPH están marcadas ""PENDIENTE POR CAMBIOS EN APLICACIÓN"".",Hojas IPH,Confirmar la lista vigente de campos y contrastarla con el formato homologado oficial.
+14,Calidad de datos,Muchos campos del IPH no tienen descripción en el análisis original.,"Anexos C y D, inventarios",Completar antes de cerrar el esquema.

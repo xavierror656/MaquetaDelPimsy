@@ -1,0 +1,20 @@
+﻿#,Lo que piden los formularios,Estado en la v1.0,Campos origen (ejemplo),Propuesta
+1,"Testigos de aseguramiento (hasta 2 por arma, sustancia u objeto)",No existe,"AD_ap_testigo1_arma, AIAO_nombre_testigo2_objeto",Entidad TESTIGO ligada al bien asegurado. Decidir si es persona maestra o dato libre.
+2,"Pertenencias del detenido (nombre, descripción, destino)",No existe,"AA_pertenencia_detenido, AA_destino_pertenencia","Entidad PERTENENCIA_DETENIDO, o referencia a SIPROB si ya la captura al ingreso."
+3,Familiar de contacto del detenido,No existe,"AA_nombre_familiar_detenido, AA_tel_familiar_detenido",CONTACTO_FAMILIAR ligado al detenido; probable dato de SIPROB.
+4,"Condición del detenido: descripción física, lesiones, padecimiento, grupo vulnerable, grupo delictivo",No existe (datos sensibles),"AA_lesiones_detenido, AA_grupo_delictivo_detenido","Atributos de DETENIDO con acceso restringido, o referencia a SIPROB."
+5,Lectura de derechos (adulto y menor infractor),No existe,"AA_lectura_derechos, ADM_comprendio",Entidad LECTURA_DERECHOS con variante de menor infractor.
+6,"Inspección, preservación, priorización y riesgo del lugar",No existe,"LI_inspeccion, LI_preservacion, LI_riesgo",Atributos del IPH (o bloque propio del evento).
+7,"Traslado del detenido (fiscalía, hospital, otra dependencia) y observaciones de ruta",No existe,"AA_traslado_detenido, AR_observaciones",Entidad TRASLADO ligada al detenido.
+8,Persona concreta que recibe el IPH (fiscal),Solo catálogo de autoridades,"PD_fiscal_nombre, PD_firma_autoridad_recibe","AUTORIDAD_RECEPTORA con persona y cargo, o selección de catálogo de fiscales."
+9,Vehículo inspeccionado aunque no se asegure ni resguarde,Solo asegurados o resguardados,"AC_*, AB_* (JC)",Permitir VEHICULO ligado al evento con bandera de inspección.
+10,Procedencia y ubicación del hallazgo de cada bien (aportación / lugar / persona / vehículo),No existe,"AD_aportacion_inspeccion_arma, AD_ubicacion_arma",Atributos del ASEGURAMIENTO o del bien.
+11,Quién aseguró cada bien,No existe,AD_ap_aseguro_arma,"Relación bien–agente involucrado con rol ""asegura""."
+12,"Arma: matrícula, serie y color",No definidos,"AD_Matricula_arma, AD_serie_arma",Agregar al esquema de ARMA.
+13,"Atributos propios del IPH: expediente, remisión, fecha y hora de puesta a disposición",Parcial,"PD_no_expediente, no_remision, PD_fecha",Agregar al esquema de IPH.
+14,Fecha y hora de conocimiento del hecho y de arribo,No existe,"CH_fecha, CH_fecha_arribo",Agregar al EVENTO; vienen del reporte de CERI o se capturan.
+15,Lugar de detención distinto al de intervención,No existe,AA_calle_carretera_detenido,Ubicación opcional en DETENCION.
+16,Delito sin detenido (hoy solo por víctima en el parte),Solo cuelga del detenido,"DPV_Delito, NH_CH_delito",Delito a nivel evento con relación opcional a detenido o víctima.
+17,"Atributos específicos de víctima (canalización, atención legal, psicológica, médica)",Sin definir,"DPV_Requirio_Canalizacion, DPV_Atencion_Legal",Definir PART_VICTIMA.
+18,"Datos de persona: teléfono, ocupación, etnia, origen estructurado, colonia del domicilio",Sin definir,"DPR_Telefono, DPR_Ocupacion, DPV_Etnia",Ampliar PERSONA y extensiones por rol.
+19,"Documentación complementaria (foto, audio, video, certificado médico)",Fuera de v1,"PD_dc_fotografia, PD_dc_video","Mientras tanto, definir si la marca se captura a mano."
