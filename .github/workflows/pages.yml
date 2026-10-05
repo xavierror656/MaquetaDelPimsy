@@ -20,7 +20,42 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  pruebas:
+    name: Pruebas de navegador y leyes de diseño
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: maqueta
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: maqueta/package-lock.json
+
+      - name: Instalar dependencias de prueba
+        run: npm ci --no-audit --no-fund
+
+      - name: Instalar el navegador de pruebas
+        run: npx playwright install --with-deps chromium
+
+      - name: Correr las pruebas
+        run: npx playwright test
+
+      - name: Guardar el reporte si algo falla
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reporte-pruebas
+          path: maqueta/playwright-report
+          retention-days: 7
+
   desplegar:
+    needs: pruebas
     runs-on: ubuntu-24.04
     environment:
       name: github-pages

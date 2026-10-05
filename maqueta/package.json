@@ -1,0 +1,13 @@
+{
+  "name": "pimsy-maqueta",
+  "private": true,
+  "type": "module",
+  "description": "Pruebas de navegador y leyes de diseño de la maqueta de PIMSy",
+  "scripts": {
+    "test": "playwright test",
+    "lint:diseno": "node tools/lint-design.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0"
+  }
+}
