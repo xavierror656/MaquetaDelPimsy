@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>PIMSy · Maqueta</title>
+<meta name="description" content="Maqueta navegable de PIMSy (SSPM Ciudad Juárez) con datos sintéticos, para validar el flujo con cada departamento.">
+<meta name="theme-color" content="#1d4ed8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231d4ed8'/%3E%3Cpath d='M32 10 14 17v13c0 11 7 19 18 24 11-5 18-13 18-24V17z' fill='white'/%3E%3Ctext x='32' y='40' font-size='22' font-family='Arial' font-weight='700' text-anchor='middle' fill='%231d4ed8'%3EP%3C/text%3E%3C/svg%3E">
 <style>
 :root{--bg:#fafafa;--card:#fff;--tx:#09090b;--mut:#71717a;--bd:#e4e4e7;--pri:#18181b;--prif:#fafafa;--pri2:#f4f4f5;--hov:#27272a;
 --ok:#15803d;--okb:#f0fdf4;--okd:#bbf7d0;--warn:#b45309;--warnb:#fffbeb;--warnd:#fde68a;--bad:#dc2626;--badb:#fef2f2;--badd:#fecaca;--pv:#7c3aed;--pvb:#f5f3ff;--r:.5rem;--sh:0 1px 2px rgba(0,0,0,.05)}
@@ -205,6 +208,11 @@ html[data-theme=dark] .b.reabierto{background:#431407;color:#fdba74;border-color
 details.gd{border-left:6px solid var(--dc)}
 .btnlike{background:var(--pri);color:var(--prif)}
 .pv{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--pv) 30%,transparent)}
+
+.roles{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;padding:4px 20px 18px;overflow-y:auto}
+.rol{display:flex;flex-direction:column;align-items:flex-start;gap:2px;height:auto;padding:12px 14px;text-align:left;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-left:6px solid var(--rc);border-radius:12px;box-shadow:var(--sh)}
+.rol b{font-size:15px;color:var(--rc)}.rol span{font-size:13px;color:var(--mut);font-weight:400}
+.rol:hover:not(:disabled){background:color-mix(in srgb,var(--rc) 10%,var(--card));border-color:var(--rc)}
 @media print{.fp{display:block}dialog{display:none!important}.pz,.card{break-inside:avoid}}
 @media(max-width:720px){
  header{padding:8px 12px;gap:8px}header .lt{display:none}header h1{font-size:15px;flex:1}header label{order:3}

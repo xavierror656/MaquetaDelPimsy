@@ -57,3 +57,6 @@ Cada entidad del DBML v0.2 tiene su formulario en `maqueta/esquema.js` (campos, 
 
 ## Tercera tanda de mejoras
 Tarjetas de resumen con filtros (todos, donde me falta aportar, listos para cerrar, provisionales, posibles duplicados); ficha imprimible del evento (PDF desde el navegador); respaldo de datos (exportar e importar JSON); revisión de cada formulario en la hoja de validación (está bien, falta o sobra algún campo, con comentario), incluida en el JSON exportado; lista compacta y encabezado reducido en celular.
+
+## Primera visita
+Al entrar por primera vez se elige el departamento (tarjetas de color con lo que hace cada uno), se recuerda para la siguiente visita y se ofrece el recorrido guiado, que al terminar oculta la explicación inicial. «Reiniciar datos» pide confirmación. Favicon y metadatos agregados.

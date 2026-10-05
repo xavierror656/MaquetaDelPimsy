@@ -44,6 +44,7 @@ const AGENTES_MONGO={ // simulacro de MongoDB (sintético)
   'E-0002':{nombre:'Agente',ap:'Sintético',am:'Dos',distrito:'ORIENTE',area:'Operaciones',subarea:'Patrullas',puesto:'Policía',unidad:'U-205'},
   'E-0003':{nombre:'Agente',ap:'Sintético',am:'Tres',distrito:'SUR',area:'Coordinación',subarea:'Mando',puesto:'Supervisor',unidad:'U-310'}};
 const DCOL={ceri:'#0ea5e9',tel:'#f59e0b',policia:'#2563eb',coord:'#7c3aed',barandilla:'#ea580c',juridico:'#059669',plataforma:'#db2777',analista:'#64748b'};
+const ROL={ceri:'Importo el reporte de CERI y abro eventos',tel:'Consulto y doy mi opinión sobre mi parte del flujo',policia:'Registro lo que pasó: detenidos, bienes, parte informativa',coord:'Agrego agentes y capturo la parte informativa',barandilla:'Registro detenidos y sus anexos',juridico:'Armo el IPH, lo enruto, lo firmo y lo envío',plataforma:'Concilio duplicados y cierro eventos',analista:'Consulto resúmenes y fichas'};
 const CADUCA_DIAS=30; // VALOR DE EJEMPLO, POR VALIDAR(Q-29)
 const UMBRAL_MIN=60;  // VALOR DE EJEMPLO, POR VALIDAR(Q-05)
 const Q={'Q-01':'¿Quién puede levantar un evento y por cuál ruta?','Q-02':'¿Coordinación General y Teléfono Comunitario son áreas con permisos propios o unidades? ¿Levantan eventos o solo supervisan?','Q-03':'¿Teléfono Comunitario genera folio CERI o uno propio?','Q-04':'¿Quién agrega cada pieza al evento (agentes, IPH, detenidos, aseguramientos, parte)?','Q-05':'¿Quién concilia y fusiona duplicados y en cuánto tiempo? (umbrales de duplicado)','Q-06':'¿Plataforma cierra y jurídico reabre? ¿Qué se edita tras el cierre y quién anula?','Q-07':'Login compartido: ¿de qué sistema nace el usuario?','Q-08':'¿Quién captura agentes y cuándo? ¿El cierre exige al menos uno?','Q-09':'¿Cómo se enlaza SIPROB con el evento?','Q-10':'¿Quién es dueño del dato de detención, PIMSy o SIPROB?','Q-11':'¿SIPROB ya captura condición del detenido, familiar, pertenencias y atención médica?','Q-12':'¿Cómo se registra un delito/falta sin detenido?','Q-13':'¿Qué pasa con un detenido que va a entrega de hechos o parte informativo y no a IPH?','Q-14':'¿La atención a emergencia se permite siempre o solo sin detención ni aseguramiento?','Q-15':'¿Dónde va el dinero: objeto especial o sustancia?','Q-16':'¿Catálogo único de armas y sustancias para parte e IPH?','Q-17':'¿Los testigos de aseguramiento son persona maestra o dato libre?','Q-18':'¿La inspección y preservación del lugar son del IPH o del evento?','Q-19':'¿Se registran vehículos inspeccionados que no se aseguran?','Q-20':'¿Cómo se registran agentes de otra institución?','Q-21':'¿El anexo de uso de la fuerza del IPH se deriva del informe? (IUF sin mapear)','Q-22':'¿Fecha/hora de conocimiento y arribo vienen de CERI o se capturan?','Q-23':'¿La marca de documentación complementaria se captura a mano?','Q-24':'¿Cuál es la lista vigente de campos del IPH?','Q-25':'¿Recorridos y patrullajes se registran siempre o solo si derivan en algo?','Q-26':'¿La clasificación de la intervención se captura al abrir o se deriva?','Q-27':'¿Se restituyen agrupamientos, autoridades participantes y denominación? ¿Cómo el motivo activa datos?','Q-28':'¿Se alinean los criterios de inclusión con el requerimiento original?','Q-29':'¿Formato regular del reporte de CERI? ¿Días para caducar un preregistro?','Q-30':'¿Google o geocodificador/mapa locales?','Q-31':'¿Dónde se guardan los croquis?','Q-32':'¿Cómo es la transición desde MongoDB?','Q-33':'¿Qué protección de datos se fija desde ahora (menores, víctimas, domicilios)?','Q-34':'¿Usuarios concurrentes y registros por año?','Q-35':'¿Política de refresco de las vistas?'};
@@ -600,7 +601,7 @@ document.addEventListener('click',x=>{
    case 'limpiar':FL={q:'',st:'',mio:false,listo:false,dup:false};return render();
    case 'kpi':{const [f,v]=k.split(':');if(f==='todos')FL={q:'',st:'',mio:false,listo:false,dup:false};else if(f==='st')FL.st=FL.st===v?'':v;else FL[f]=!FL[f];return render()}
    case 'heroOff':try{localStorage.setItem('pimsy_hero','1')}catch(x){}return render();
-   case 'nav':if(k==='reset'){try{localStorage.removeItem('pimsy_estado2')}catch(x){}seed();view='eventos';cur=null;render();return toast('Datos de ejemplo restaurados.')}return go(k);
+   case 'nav':if(k==='reset')return confirmar('Reiniciar datos','Se borran los eventos que capturaste y vuelven los 3 de ejemplo. Tu hoja de validación no se borra.','Reiniciar',()=>{try{localStorage.removeItem('pimsy_estado2')}catch(x){}seed();view='eventos';cur=null;render();toast('Datos de ejemplo restaurados.')},true);return go(k);
    case 'abrir':return go('det',id);
    case 'otra':e.version++;aud(e,'UPDATE','evento','Edición simulada de otra área');return toast('Otra área guardó. Tu pantalla ya está desactualizada: intenta guardar.');
    case 'nuevoA':return abrirForm({titulo:'Nuevo evento (Ruta A, origen primero)',e:null,fields:EVENTO,values:{municipio:'Juárez',entidad:'Chihuahua'},
@@ -657,14 +658,22 @@ document.addEventListener('keydown',x=>{
   if(x.key==='Enter'&&t.matches&&t.matches('tr[data-act]'))t.click();
   if(x.key==='Escape'&&!$('#tour').hidden)tourFin()});
 $('#dept').innerHTML=DK.map(k=>`<option value="${k}">${DEPTS[k].n}</option>`).join('');
-$('#dept').onchange=x=>{dept=x.target.value;render()};
+$('#dept').onchange=x=>{dept=x.target.value;try{localStorage.setItem('pimsy_dept',dept)}catch(e){}render()};
 
+/* ===== Primera visita: elegir quién eres ===== */
+function elegirRol(primera){
+  const d=$('#dlg');d.className='big';
+  d.innerHTML=`<form method="dialog"><div class="dh"><h3 id="dlgt">¿Quién eres?</h3></div><p class="small mut" style="margin:8px 20px">Elige tu departamento. Verás solo lo que te toca; después puedes cambiarlo arriba cuando quieras.</p>
+   <div class="roles">${DK.map(k=>`<button type="button" class="rol" style="--rc:${DCOL[k]}" data-rol="${k}"><b>${DEPTS[k].n}</b><span>${ROL[k]}</span></button>`).join('')}</div></form>`;
+  d.oncancel=null;
+  d.querySelectorAll('[data-rol]').forEach(b=>b.onclick=()=>{dept=b.dataset.rol;try{localStorage.setItem('pimsy_dept',dept)}catch(x){}d.close();render();if(primera){try{if(localStorage.getItem('pimsy_tour')!=='1')setTimeout(()=>tour(0),300)}catch(x){}}});
+  d.showModal()}
 /* ===== Recorrido guiado y tema ===== */
 const TOUR=[['#dept','Elige quién eres','Cambia de departamento aquí. Cada uno ve y puede hacer cosas distintas.'],
  ['#nav','Secciones','Eventos, preregistros de CERI, conciliación, permisos, tu hoja de validación y la auditoría.'],
  ['#app tr.click','Abre un evento','Haz clic en una fila. Arriba verás tu siguiente paso y cuánto falta para cerrarlo. En «Piezas» registras lo que te toca.'],
  ['#help','Ayuda','Puedes repetir este recorrido cuando quieras.']];
-function tourFin(){$('#tour').hidden=true;document.querySelectorAll('.tour-hl').forEach(z=>z.classList.remove('tour-hl'));try{localStorage.setItem('pimsy_tour','1')}catch(x){}}
+function tourFin(){$('#tour').hidden=true;document.querySelectorAll('.tour-hl').forEach(z=>z.classList.remove('tour-hl'));try{localStorage.setItem('pimsy_tour','1');localStorage.setItem('pimsy_hero','1')}catch(x){};if(view==='eventos')render()}
 function tour(i){
   document.querySelectorAll('.tour-hl').forEach(z=>z.classList.remove('tour-hl'));
   if(i>=TOUR.length)return tourFin();
@@ -681,5 +690,6 @@ $('#theme').onclick=()=>{let m='auto';try{m=localStorage.getItem('pimsy_tema')||
 {let m='auto';try{m=localStorage.getItem('pimsy_tema')||'auto'}catch(x){}theme(m)}
 
 try{const g=JSON.parse(localStorage.getItem('pimsy_estado2')||'null');if(g&&g.S){S=g.S;Object.assign(AGENTES_MONGO,g.AGENTES_MONGO)}else seed()}catch(x){seed()}
+try{const dd=localStorage.getItem('pimsy_dept');if(dd&&DEPTS[dd])dept=dd}catch(x){}
 render();
-try{if(localStorage.getItem('pimsy_tour')!=='1')setTimeout(()=>tour(0),400)}catch(x){}
+try{if(!localStorage.getItem('pimsy_dept'))setTimeout(()=>elegirRol(true),300);else if(localStorage.getItem('pimsy_tour')!=='1')setTimeout(()=>tour(0),400)}catch(x){}
