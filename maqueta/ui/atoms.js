@@ -46,3 +46,6 @@ UI.atoms.bar=(pct,max=100)=>`<div class="bar" role="progressbar" aria-valuenow="
 
 /* Pin del mapa (el color lo da el acento del departamento) */
 UI.atoms.mapPin=()=>'<span class="pin" aria-hidden="true"></span>';
+
+/* Punto de leyenda de mapa: la clase pinta el color; el texto siempre acompaña */
+UI.atoms.legendDot=({clase,texto})=>`<span class="leg-i"><span class="leg-dot ${UI.esc(clase)}" aria-hidden="true"></span>${UI.esc(texto)}</span>`;

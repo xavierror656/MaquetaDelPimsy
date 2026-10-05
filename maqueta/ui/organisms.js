@@ -58,6 +58,10 @@ UI.organisms.formDialog=({titulo,tagHtml='',aviso='',chips=[],camposHtml,okLabel
 UI.organisms.tourStep=({titulo,texto,pos,total,siguiente})=>
   `<h4>${esc(titulo)}</h4><p>${esc(texto)}</p><div class="row end"><span class="small mut grow">${pos} de ${total}</span>${A.button({label:'Omitir',act:'tourFin',kind:'sec'})}${A.button({label:siguiente,act:'tourSig',attrs:`data-k="${pos}"`})}</div>`;
 
+/* Panel de mapa con leyenda y contador (el comportamiento lo monta app.js sobre #id) */
+UI.organisms.mapPanel=({id,grande=false,leyenda=[],pie=''})=>
+  `<div id="${esc(id)}" class="mapa ${grande?'mapa-grande':''}" role="application" aria-label="Mapa de puntos"></div><div class="leg">${leyenda.map(UI.atoms.legendDot).join('')}</div><p id="${esc(id)}-n" class="small mut" aria-live="polite">${esc(pie)}</p>`;
+
 /* Tarjeta con mapa para ubicar el evento (el comportamiento lo monta app.js sobre #mapa) */
 UI.organisms.mapCard=({titulo,ayuda,botonesHtml,estado})=>
   `<div class="card"><div class="row"><h3 style="margin:0">${esc(titulo)}</h3><span class="grow"></span>${botonesHtml}</div><p class="small mut">${ayuda}</p><div id="mapa" class="mapa" role="application" aria-label="Mapa para ubicar el evento"></div><p id="mapa-estado" class="small mut" aria-live="polite">${esc(estado)}</p></div>`;

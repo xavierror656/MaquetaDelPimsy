@@ -122,3 +122,21 @@ dialog.big .alert,dialog.big .rp,dialog.big .chips,dialog.big>form>p{margin-left
 .mapa.leaflet-container{width:100%;background:var(--color-brand-soft);font-family:var(--font-sans)}
 .mapa-pin{background:transparent;border:0}
 .pin{display:block;width:1.25rem;height:1.25rem;background:var(--dc);border:var(--border-w-strong) solid var(--color-surface);border-radius:50% 50% 50% 0;box-shadow:var(--shadow-md);transform:rotate(-45deg)}
+
+/* Mapa de puntos (preregistros de CERI): el color viene de tokens; la leyenda siempre lleva texto */
+.mapa-grande{height:26rem}
+.pre-pt{fill:var(--color-info);fill-opacity:.85;stroke:var(--color-surface);stroke-width:1}
+.pre-pt.prio-alta{fill:var(--color-danger)}
+.pre-pt.prio-media{fill:var(--color-warning-edge)}
+.pre-pt.prio-baja{fill:var(--chart-mark)}
+.pre-pt.ya-evento{fill:var(--color-success)}
+.leg{display:flex;flex-wrap:wrap;gap:var(--space-4);margin-top:var(--space-2);font-size:var(--text-sm);color:var(--color-text)}
+.leg-i{display:inline-flex;align-items:center;gap:var(--space-1)}
+.leg-dot{display:inline-block;width:.75rem;height:.75rem;border-radius:50%;border:var(--border-w) solid var(--color-surface);box-shadow:0 0 0 1px var(--color-border);background:var(--color-info)}
+.leg-dot.prio-alta{background:var(--color-danger)}
+.leg-dot.prio-media{background:var(--color-warning-edge)}
+.leg-dot.prio-baja{background:var(--chart-mark)}
+.leg-dot.ya-evento{background:var(--color-success)}
+.mapa .leaflet-popup-content-wrapper,.mapa .leaflet-popup-tip{background:var(--color-surface);color:var(--color-text)}
+.mapa .leaflet-popup-content{margin:var(--space-3);font-family:var(--font-sans);font-size:var(--text-md)}
+.mp-a{margin-top:var(--space-2)}

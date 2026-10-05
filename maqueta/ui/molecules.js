@@ -80,6 +80,9 @@ UI.molecules.barChart=({titulo,subtitulo='',datos,unidad=''})=>{
   const tabla=`<table><tr><th>Categoría</th><th>${esc(unidad||'Cantidad')}</th></tr>${datos.map(d=>`<tr><td>${esc(d.etiqueta)}</td><td>${d.valor}</td></tr>`).join('')}</table>`;
   return `<section class="card chart"><h3>${esc(titulo)}</h3>${subtitulo?`<p class="small mut">${esc(subtitulo)}</p>`:''}${datos.length?`<div class="bc" role="img" aria-label="${esc(titulo)}">${filas}</div>${UI.molecules.disclosure({resumen:'Ver como tabla',html:tabla})}`:UI.molecules.emptyState({texto:'Aún no hay datos para esta gráfica.'})}</section>`};
 
+/* Contenido de un globo de mapa */
+UI.molecules.mapPopup=({titulo,lineas,accionHtml=''})=>`<div class="mp"><b>${esc(titulo)}</b>${lineas.filter(Boolean).map(l=>`<div class="small">${esc(l)}</div>`).join('')}${accionHtml?`<div class="mp-a">${accionHtml}</div>`:''}</div>`;
+
 /* Campo de formulario: etiqueta + control + ayuda + nota + error (ligado a Alpine) */
 UI.molecules.field=({id,clave,indice,etiqueta,obligatorio=false,tagsHtml='',controlHtml,ayuda='',nota='',ancho=false,extraHtml=''})=>
   `<div class="fld ${ancho?'full':''}" x-show="vis(${indice})" @focusout="touched['${clave}']=true"><label for="f_${id}">${esc(etiqueta)}${obligatorio?' <b class="no" title="Obligatorio">*</b>':''}${tagsHtml}<span class="vok" x-show="okf('${clave}')" title="Correcto">${A.icon('check')}</span>${extraHtml}</label>${controlHtml}${ayuda?`<small class="ay">${esc(ayuda)}</small>`:''}${nota?`<small class="ay">${esc(nota)}</small>`:''}<span class="ferr" role="alert" x-text="bad('${clave}')?errs['${clave}']:''"></span></div>`;

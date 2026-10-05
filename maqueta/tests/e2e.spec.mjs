@@ -182,6 +182,33 @@ test('lector de Excel: excluye no procedentes, sin SPM, repetidos y datos person
   expect(r.sinTel).toBe(true);
 });
 
+test('subir un archivo de CERI muestra el mapa de la vista previa y el de los preregistros, sin errores',async({page})=>{
+  const errores=await abrir(page,'ceri');
+  await page.evaluate(()=>{view='pre';render()});
+  await page.setInputFiles('[data-f=ceri]',join(RAIZ,'muestra_ceri.csv'));
+  await expect(page.locator('#dlg .pvb')).toBeVisible();
+  await expect(page.locator('#mapa-prev .pre-pt')).toHaveCount(5); // 6 importables, uno sin coordenadas
+  await page.locator('#dlg button[type=submit]').click();
+  await expect(page.locator('#mapa-pre .pre-pt')).toHaveCount(9); // 4 de ejemplo + 5 importados con coordenadas
+  await page.locator('#pq').fill('RIÑA');
+  await expect(page.locator('#prows tr')).not.toHaveCount(0);
+  await page.locator('#mapa-pre .pre-pt').first().click({force:true});
+  await page.locator('.leaflet-popup [data-act=promover]').click();
+  await expect(page.locator('#dlg h3')).toContainText('Revisa el evento');
+  await expect(page.locator('#dlg #f_folio_ceri')).not.toHaveValue('');
+  expect(errores).toEqual([]);
+});
+
+test('Nuevo evento: elegir un preregistro prellena el formulario',async({page})=>{
+  await abrir(page,'ceri');
+  await page.locator('[data-act=nuevoA]').click();
+  await page.locator('#dlg #f_prereg').fill('9000002 · DAÑO A BIENES PUBLICOS, INSTITUCIONES, MONUMENTOS, ENTRE OTROS · HIDALGO');
+  await expect(page.locator('#dlg #f_folio_ceri')).toHaveValue('');
+  await page.locator('#dlg #f_prereg').fill('9000003 · EXTORSION TELEFONICA · VILLAS DEL BRAVO I');
+  await expect(page.locator('#dlg #f_folio_ceri')).toHaveValue('9000003');
+  await expect(page.locator('#dlg #f_colonia')).toHaveValue('VILLAS DEL BRAVO I');
+});
+
 test('la búsqueda global encuentra unas placas y abre el evento',async({page})=>{
   await abrir(page,'policia');
   await page.locator('#gq').fill('FICT-123');

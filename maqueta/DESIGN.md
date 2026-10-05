@@ -75,9 +75,9 @@ Dirección de dependencias (solo hacia abajo, nunca saltarse ni subir):
 
 | Capa | Componente | Archivo | Para qué |
 |---|---|---|---|
-| Átomo | `icon` · `badge` · `tagValidar` · `tagEjemplo` · `button` · `hint` · `bar` · `mapPin` | `ui/atoms.js` | piezas indivisibles |
-| Molécula | `actionButton` · `compactButton` · `kpi` · `emptyState` · `alert` · `tabs` · `toast` · `stepCard` · `roleCard` · `disclosure` · `menu` · `menuItem` · `searchBox` · `dataList` · `yesNo` · `field` · `commentButton` · `taskItem` · `statTile` · `barChart` | `ui/molecules.js` | una función concreta |
-| Organismo | `navBar` · `kpiRow` · `guide` · `welcome` · `pieceBlock` · `recordGroup` · `timeline` · `roleGrid` · `confirmDialog` · `dialogShell` · `formDialog` · `tourStep` · `themePanel` · `searchResults` · `taskPanel` · `commentDialog` · `dashboard` · `comparison` · `mapCard` | `ui/organisms.js` | secciones completas |
+| Átomo | `icon` · `badge` · `tagValidar` · `tagEjemplo` · `button` · `hint` · `bar` · `mapPin` · `legendDot` | `ui/atoms.js` | piezas indivisibles |
+| Molécula | `actionButton` · `compactButton` · `kpi` · `emptyState` · `alert` · `tabs` · `toast` · `stepCard` · `roleCard` · `disclosure` · `menu` · `menuItem` · `searchBox` · `dataList` · `yesNo` · `field` · `commentButton` · `taskItem` · `statTile` · `barChart` · `mapPopup` | `ui/molecules.js` | una función concreta |
+| Organismo | `navBar` · `kpiRow` · `guide` · `welcome` · `pieceBlock` · `recordGroup` · `timeline` · `roleGrid` · `confirmDialog` · `dialogShell` · `formDialog` · `tourStep` · `themePanel` · `searchResults` · `taskPanel` · `commentDialog` · `dashboard` · `comparison` · `mapCard` · `mapPanel` | `ui/organisms.js` | secciones completas |
 
 **Tokens principales** (ver `css/theme.css`): `--color-brand|surface|text|text-muted|border|success|warning|danger|validate|info`, `--cat-1…5`, `--dept-*`, `--text-*`, `--space-*`, `--radius-*`, `--shadow-*`, `--control-h*`, `--z-*`, `--motion-*`.
 
@@ -108,4 +108,4 @@ El stack decidido es Laravel, no Symfony. Esta arquitectura se traslada así: `u
 
 ## 11. Pruebas
 
-`cd maqueta && npm install && npx playwright install chromium && npm test` corre 23 pruebas de navegador (formularios, permisos, cierre, fusión, Excel, búsqueda, sesión, comentarios, tablero, mapa, tema, accesibilidad) y el linter de leyes. GitHub Actions las corre antes de publicar.
+`cd maqueta && npm install && npx playwright install chromium && npm test` corre 25 pruebas de navegador (formularios, permisos, cierre, fusión, Excel, búsqueda, sesión, comentarios, tablero, mapa, tema, accesibilidad) y el linter de leyes. GitHub Actions las corre antes de publicar.

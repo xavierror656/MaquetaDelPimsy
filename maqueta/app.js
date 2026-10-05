@@ -279,6 +279,7 @@ function formApp(){
      this.$watch('v',nv=>{
        const old=JSON.parse(this.prev);this.prev=JSON.stringify(nv);
        fl.forEach(f=>{if(!f.k)return;if(JSON.stringify(nv[f.k])===JSON.stringify(old[f.k]))return;
+         if(f.fill&&nv[f.k]){const r=f.fill(nv[f.k]);if(r)Object.entries(r).forEach(([k2,v2])=>{this.v[k2]=v2})}
          if(f.auto&&nv[f.k])Object.entries(f.auto).forEach(([t,fn])=>{if(!nv[t]){const r=fn(nv[f.k]);if(r)this.v[t]=r}});
          if(this.flds[f.k])this.flds[f.k].handleChange(JSON.parse(JSON.stringify(nv[f.k])));
          else if(!this.api)this.errs[f.k]=this.chk(f,nv[f.k])||''});
@@ -331,9 +332,11 @@ function render(){
   const dd=DEPTS[dept];
   const head=`<p class="legend noprint">Maqueta con datos 100% sintéticos. Departamento activo: <b>${dd.n}</b>${dd.q?pv(dd.q):''}. Lo que no le corresponde aparece deshabilitado con su leyenda. Las etiquetas ${pv('Q-xx')} marcan lo no decidido. Los catálogos marcados «ejemplo» son ficticios.</p>`;
   if(MAPA){MAPA.remove();MAPA=null}
+  if(MAPA_PRE){MAPA_PRE.remove();MAPA_PRE=null;CAPA_PRE=null}
   renderSesion();
   $('#app').innerHTML=head+({eventos:vLista,det:vDetalle,ficha:vFicha,tablero:vTablero,guia:vGuia,pre:vPre,conc:vConc,perm:vPerm,hoja:vHoja,aud:vAud}[view])();
   if(view==='det'&&tab==='resumen')montarMapa();
+  if(view==='pre')montarMapaPre();
 }
 function vFicha(){
   const e=ev();if(!e)return '';const o=e.origen;
@@ -517,11 +520,12 @@ function vistaPrevia(res,nombre){
    <table><tr><th>Resultado</th><th></th></tr>${fila('Filas leídas',c.leidas)}${fila('Sin folio',c.sinFolio)}${fila('Excluidas: no procedentes (estatus distinto de TERMINO)',c.noProcedente)}${fila('Excluidas: no incluyen a la SSPM (sin «SPM»)',c.sinSPM)}${fila('Excluidas: folio ya existente',c.duplicadas)}${fila('Se importarán como preregistro',res.ok.length,'tot')}</table>
    ${Object.keys(res.flags).length?`<h4>Avisos de calidad</h4><ul>${Object.entries(res.flags).map(([k,n])=>`<li>${n} · ${esc(k)}</li>`).join('')}</ul>`:''}
    ${res.personales.length?`<div class="alert">Se ignoraron las columnas con datos personales: <b>${res.personales.join(', ')}</b>. No se leen ni se guardan.</div>`:''}
+   ${res.ok.some(r=>r.lat!=='')?`<h4>Dónde ocurrieron</h4>${UO.mapPanel({id:'mapa-prev',leyenda:LEYENDA_PRE.slice(0,3),pie:`${res.ok.filter(r=>r.lat!=='').length} puntos con coordenadas (UTM convertidas a latitud y longitud).`})}`:''}
    ${res.ok.length?`<h4>Primeros registros</h4><div class="sc"><table><tr><th>Folio</th><th>Fecha</th><th>Incidente</th><th>Colonia</th></tr>${res.ok.slice(0,5).map(r=>`<tr><td>${r.folio}</td><td>${r.fecha.replace('T',' ')}</td><td>${esc(r.incidente)}</td><td>${esc(r.colonia||r.coloniaOrig||'—')}</td></tr>`).join('')}</table></div>`:'<p>No hay registros importables.</p>'}
    <p class="small mut">Las coordenadas UTM se convierten de forma aproximada; en producción lo hace PostGIS. Caducidad de ${CADUCA_DIAS} días <span class="b pendiente">valor de ejemplo</span>${pv('Q-29')}.</p></div>
    <div class="foot"><div class="row end"><button type="button" class="sec" onclick="$('#dlg').close()">Cancelar</button><button type="submit" ${res.ok.length?'':'disabled'}>Importar ${res.ok.length} preregistros</button></div></div></form>`;
   d.querySelector('form').onsubmit=x=>{x.preventDefault();d.close();S.pre=[...res.ok,...S.pre];aud(null,'INSERT','evento_preregistro_ceri',`Importados ${res.ok.length} preregistros desde ${nombre}`);render();toast(`${res.ok.length} preregistros importados.`,'ok')};
-  d.showModal()}
+  d.showModal();montarMapaPrev(res.ok)}
 const GUIA={
  ceri:{n:'CERI / origen',pasos:[['Importa el reporte de CERI','En «Preregistros CERI» sube el Excel o el CSV. Revisa la vista previa y confirma.','pre'],['Revisa los avisos','Mira «sin geolocalizar», «arribo igual a inicio» o «colonia fuera de catálogo». Son datos a corregir, no errores tuyos.','pre'],['Promueve a evento solo lo que tenga consecuencias','Un preregistro se vuelve evento cuando un área le agrega algo. Si nadie lo hace, caduca.','pre'],['Completa el origen','Folio, fecha y hora, motivo y ubicación. Lo demás lo agregan las otras áreas.','eventos'],['No captures teléfono ni nombre del relator','Esos datos nunca se importan ni se guardan.',null]]},
  tel:{n:'Teléfono Comunitario',pasos:[['Hoy solo puedes consultar','Si Teléfono Comunitario levanta eventos o solo supervisa está por decidir (Q-01, Q-02, Q-03).','perm'],['Cuéntanos cómo trabajas','Llena tu hoja de validación: qué aportas, cuándo y qué folio usas.','hoja']]},
@@ -582,13 +586,25 @@ function abrirComparacion(pid,cid){
     pieHtml:UA.button({label:'Cerrar',kind:'sec',type:'button',attrs:`onclick="this.closest('dialog').close()"`})+B('Fusionar','fusionarCmp','fusionar',`data-id="${pid}" data-k="${cid}"`)});
   d.showModal()}
 
+let PQ={q:'',n:50};
+function preFiltrados(){const q=sinAcento(PQ.q.trim());return S.pre.filter(p=>!q||sinAcento([p.folio,p.incidente,p.colonia,p.coloniaOrig,p.distrito,p.calle].join(' ')).includes(q))}
+function filasPre(){
+  const L=preFiltrados(),v=L.slice(0,PQ.n);
+  const t=v.map(p=>`<tr><td data-l="Folio">${p.folio}</td><td data-l="Fecha">${p.fecha.replace('T',' ')}</td><td data-l="Incidente">${esc(p.incidente)}</td><td data-l="Colonia">${esc(p.colonia||p.coloniaOrig||'—')}</td><td data-l="Distrito/Sector">${esc(p.distrito||'—')} / ${esc(p.sector||'—')}</td><td data-l="Avisos">${(p.flags||[]).map(f=>UA.badge('pendiente',esc(f.replace(/_/g,' ')))).join(' ')||'—'}</td><td data-l="Vence">${p.evento?'—':esc(p.caduca||'—')}</td>
+   <td>${p.evento?UA.badge('registrado','promovido → '+esc((S.eventos.find(e=>e.id===p.evento)||{}).ref||'')):B('Prellenar evento','promover','crearA',`data-k="${p.folio}"`)}${latLonDe(p)?UA.button({label:'Ver en el mapa',act:'verMapa',kind:'sec',size:'sm',attrs:`data-k="${p.folio}"`}):''}</td></tr>`).join('');
+  return t||`<tr><td colspan="8">${UM.emptyState({texto:'No hay preregistros con esa búsqueda.'})}</td></tr>`}
+function resumenPre(){const L=preFiltrados(),m=Math.min(PQ.n,L.length);return `Mostrando ${m} de ${L.length} preregistros${L.length!==S.pre.length?` (de ${S.pre.length} en total)`:''}.`}
 function vPre(){
   return `<div class="card"><h2>Preregistros CERI <span class="small mut">(sin teléfono ni relator; solo procedentes con SPM)</span></h2>
   <p class="small">Caduca si ningún área le agrega una consecuencia: <b>${CADUCA_DIAS} días</b> <span class="b pendiente">VALOR DE EJEMPLO</span>${pv('Q-29')}. Las coordenadas UTM se convierten a latitud/longitud de forma aproximada; en producción lo hace PostGIS. Si la hora de arribo es igual a la de inicio, se importa vacía.</p>
-  <div class="card soft noprint"><h3>Importar el reporte de CERI</h3><p class="small">Sube el Excel (.xlsx o .xls) o el CSV del reporte macro. Se aplican las reglas de <code>05-ceri</code>: solo procedentes con SPM, sin folios repetidos, sin teléfono ni relator.</p><div class="row"><label class="btnlike" style="cursor:pointer">${ic('plus')} Elegir archivo<input type="file" accept=".xlsx,.xls,.csv" data-f="ceri" hidden></label><button class="sec" data-act="muestraCeri">Probar con la muestra sintética</button></div></div>
-  <div class="sc"><table class="rs"><tr><th>Folio</th><th>Fecha</th><th>Incidente</th><th>Colonia</th><th>Distrito/Sector</th><th>Avisos</th><th>Vence</th><th></th></tr>
-  ${S.pre.map(p=>`<tr><td data-l="Folio">${p.folio}</td><td data-l="Fecha">${p.fecha.replace('T',' ')}</td><td data-l="Incidente">${p.incidente}</td><td data-l="Colonia">${esc(p.colonia||p.coloniaOrig||'—')}</td><td data-l="Distrito/Sector">${esc(p.distrito||'—')} / ${esc(p.sector||'—')}</td><td data-l="Avisos">${(p.flags||[]).map(f=>`<span class="b pendiente" title="${esc(f)}">${esc(f.replace(/_/g,' '))}</span>`).join(' ')||'—'}</td><td data-l="Vence">${p.evento?'—':esc(p.caduca||'—')}</td>
-   <td>${p.evento?`<span class="b registrado">promovido → ${S.eventos.find(e=>e.id===p.evento).ref}</span>`:B('Promover a evento','promover','crearA',`data-k="${p.folio}"`)}</td></tr>`).join('')}</table></div></div>`}
+  ${UM.alert({tipo:'',html:'<b>Cómo se usa:</b> 1) sube el Excel del reporte de CERI; 2) revisa la vista previa e importa; 3) mira los puntos en el mapa o busca el folio en la tabla y pulsa «Prellenar evento»; 4) revisa el formulario ya lleno y créalo. También puedes elegir el preregistro dentro de «Nuevo evento».'})}
+  <div class="card soft noprint"><h3>1. Subir el reporte de CERI</h3><p class="small">Acepta el Excel del reporte macro (.xlsx o .xls) o un CSV. Se aplican las reglas de <code>05-ceri</code>: solo procedentes con SPM, sin folios repetidos y <b>sin teléfono ni relator</b> (esas columnas ni se leen). Todo se procesa en tu navegador: el archivo no se sube a ningún servidor.</p><div class="row"><label class="btnlike" style="cursor:pointer">${ic('plus')} Elegir archivo<input type="file" accept=".xlsx,.xls,.csv" data-f="ceri" hidden></label><button class="sec" data-act="muestraCeri">Probar con la muestra sintética</button></div></div>
+  <h3>2. Ver los preregistros en el mapa</h3>
+  ${UO.mapPanel({id:'mapa-pre',grande:true,leyenda:LEYENDA_PRE,pie:'Cargando el mapa…'})}
+  <h3>3. Elegir un preregistro</h3>
+  <div class="filtros">${UM.searchBox({id:'pq',clave:'pq',valor:PQ.q,placeholder:'Buscar por folio, incidente, colonia o distrito',etiqueta:'Buscar preregistros'})}<span id="pcount" class="small mut">${resumenPre()}</span></div>
+  <div class="sc"><table class="rs"><tr><th>Folio</th><th>Fecha</th><th>Incidente</th><th>Colonia</th><th>Distrito/Sector</th><th>Avisos</th><th>Vence</th><th></th></tr><tbody id="prows">${filasPre()}</tbody></table></div>
+  <p class="noprint">${UA.button({label:'Mostrar más',act:'preMas',kind:'sec'})}</p></div>`}
 
 function vConc(){
   const prov=S.eventos.filter(e=>e.estado==='borrador_sin_origen'),dest=S.eventos.filter(e=>!['borrador_sin_origen','anulado','cerrado'].includes(e.estado));
@@ -680,6 +696,9 @@ function crearA(o,pre){
   const d=duplicado(n);S.eventos.push(n);if(pre)pre.evento=n.id;aud(n,'INSERT','evento','Ruta A');
   view='det';cur=n.id;tab='resumen';seenVer=n.version;render();
   toast(`${n.ref} creado (abierto).`+(d?` Alerta: posible duplicado de ${d.ref}.`:''),d?1:'ok')}
+const CAMPO_PREREG={k:'prereg',l:'Prellenar con un preregistro de CERI',t:'lista',ayuda:'Escribe un folio, un incidente o una colonia. ¿No aparece? Importa el reporte en «Preregistros CERI».',
+  o:()=>S.pre.filter(p=>!p.evento).slice(0,3000).map(p=>{const t=`${p.folio} · ${p.incidente} · ${p.colonia||p.coloniaOrig||''}`;return {v:t,l:t}}),
+  fill:v=>{const p=S.pre.find(z=>z.folio===String(v).split(' ')[0]&&!z.evento);return p?desdePre(p):null}};
 function desdePre(p){
   const [la,lo]=p.lat!==undefined&&p.lat!==''?[p.lat,p.lon]:(p.x&&p.y?utm2ll(p.x,p.y):['','']);
   return {tipo_origen:'Llamada de emergencia / despacho CERI',medio_conocimiento:'CERI',folio_ceri:p.folio,motivo:(p.codigo&&motivoDe(p.codigo))||CAT.motivo.find(m=>m.includes(p.incidente.split(',')[0]))||p.incidente,
@@ -687,6 +706,7 @@ function desdePre(p){
    calle:p.calle,cruce_1:p.cruce,numero_exterior:p.nx,numero_interior:p.ni||'',colonia:p.colonia,codigo_postal:p.cp,referencia:p.referencia||'REFERENCIA FICTICIA',distrito:p.distrito,sector:p.sector,latitud:la,longitud:lo,fuente_geocodificacion:la===''?'':'Manual'}}
 
 /* ===== Mapa para ubicar el evento (Leaflet incluido en vendor/) ===== */
+const OPC_MAPA={scrollWheelZoom:false,zoomAnimation:false,fadeAnimation:false,markerZoomAnimation:false}; // sin animaciones: evita errores si el mapa se cierra a la mitad
 let MAPA=null,MAPA_PEND=null;
 function cargarLeaflet(){return window.L?Promise.resolve():new Promise((ok,no)=>{const l=document.createElement('link');l.rel='stylesheet';l.href='vendor/leaflet.css';document.head.appendChild(l);const s=document.createElement('script');s.src='vendor/leaflet.js';s.onload=ok;s.onerror=()=>no(new Error('No se pudo cargar el mapa.'));document.head.appendChild(s)})}
 function montarMapa(){
@@ -694,7 +714,7 @@ function montarMapa(){
   cargarLeaflet().then(()=>{
     if(!document.body.contains(el))return;
     const o=e.origen,tiene=o.latitud&&o.longitud,c=tiene?[+o.latitud,+o.longitud]:[31.69,-106.42];
-    MAPA=L.map(el,{scrollWheelZoom:false}).setView(c,tiene?16:11);
+    MAPA=L.map(el,OPC_MAPA).setView(c,tiene?16:11);
     let fallo=false;
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(MAPA).on('tileerror',()=>{if(fallo)return;fallo=true;const s=$('#mapa-estado');if(s)s.textContent='Sin conexión: el mapa necesita internet para dibujar las calles. Puedes capturar las coordenadas a mano en «Completar / editar origen».'});
     const icon=L.divIcon({className:'mapa-pin',html:UA.mapPin(),iconSize:[20,20],iconAnchor:[10,20]}),g=$('#mapaGuardar');
@@ -705,6 +725,42 @@ function montarMapa(){
     if(tiene){m=L.marker(c,{icon,draggable:true}).addTo(MAPA);m.on('dragend',()=>pon(m.getLatLng()))}
     MAPA.on('click',x=>pon(x.latlng));MAPA_PEND=null;
   }).catch(er=>{const s=$('#mapa-estado');if(s)s.textContent=er.message})}
+
+/* ===== Mapa de puntos de los preregistros de CERI (datos del Excel, coordenadas convertidas de UTM) ===== */
+let MAPA_PRE=null,CAPA_PRE=null,MAPA_PREV=null;const MARC=new Map();
+const LEYENDA_PRE=[{clase:'prio-alta',texto:'Prioridad alta'},{clase:'prio-media',texto:'Prioridad media'},{clase:'prio-baja',texto:'Prioridad baja'},{clase:'ya-evento',texto:'Ya es evento'}];
+const clasePre=p=>p.evento?'ya-evento':'prio-'+({ALTA:'alta',MEDIA:'media',BAJA:'baja'}[String(p.prioridad||'').toUpperCase()]||'baja');
+const capaOSM=()=>L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'});
+const latLonDe=p=>p.lat!==''&&p.lat!==undefined?[+p.lat,+p.lon]:(p.x&&p.y?utm2ll(+p.x,+p.y):null);
+function pintarPuntos(mapa,filas,{conAccion,marcas}){
+  const capa=L.layerGroup().addTo(mapa),pts=[];
+  filas.forEach(p=>{const ll=latLonDe(p);if(!ll)return;pts.push(ll);
+    const m=L.circleMarker(ll,{radius:6,className:'pre-pt '+clasePre(p),weight:1}).addTo(capa);
+    m.bindTooltip(`${p.folio} · ${p.incidente}`,{direction:'top'});
+    m.bindPopup(()=>UM.mapPopup({titulo:p.folio,lineas:[p.incidente,[p.colonia||p.coloniaOrig,p.distrito].filter(Boolean).join(' · '),p.fecha.replace('T',' ')+(p.prioridad?' · prioridad '+p.prioridad:'')],
+      accionHtml:conAccion?(p.evento?UA.badge('registrado','ya es evento'):B('Prellenar evento','promover','crearA',`data-k="${p.folio}"`)):''}));
+    if(marcas)marcas.set(p.folio,m)});
+  return {capa,pts}}
+function montarMapaPre(){
+  const el=$('#mapa-pre');if(!el)return;
+  cargarLeaflet().then(()=>{
+    if(!document.body.contains(el))return;
+    MAPA_PRE=L.map(el,OPC_MAPA).setView([31.69,-106.42],11);capaOSM().addTo(MAPA_PRE);
+    refrescarMapaPre(true)}).catch(er=>{const s=$('#mapa-pre-n');if(s)s.textContent=er.message})}
+function refrescarMapaPre(ajustar){
+  if(!MAPA_PRE)return;if(CAPA_PRE)CAPA_PRE.remove();MARC.clear();
+  const filas=preFiltrados(),{capa,pts}=pintarPuntos(MAPA_PRE,filas,{conAccion:true,marcas:MARC});CAPA_PRE=capa;
+  if(ajustar&&pts.length)MAPA_PRE.fitBounds(pts,{padding:[20,20],maxZoom:15,animate:false});
+  const s=$('#mapa-pre-n');if(s)s.textContent=`${pts.length} puntos en el mapa${filas.length-pts.length?` · ${filas.length-pts.length} sin coordenadas`:''}. Haz clic en un punto para ver el incidente y prellenar el evento.`}
+function montarMapaPrev(filas){
+  const el=$('#mapa-prev');if(!el)return;
+  cargarLeaflet().then(()=>{
+    if(MAPA_PREV){MAPA_PREV.remove();MAPA_PREV=null}
+    MAPA_PREV=L.map(el,OPC_MAPA).setView([31.69,-106.42],11);capaOSM().addTo(MAPA_PREV);
+    const {pts}=pintarPuntos(MAPA_PREV,filas,{conAccion:false});
+    if(pts.length)MAPA_PREV.fitBounds(pts,{padding:[20,20],maxZoom:15,animate:false});
+    setTimeout(()=>MAPA_PREV&&MAPA_PREV.invalidateSize(),100);
+    $('#dlg').addEventListener('close',()=>{if(MAPA_PREV){MAPA_PREV.remove();MAPA_PREV=null}},{once:true})}).catch(()=>{})}
 
 /* ===== Búsqueda global ===== */
 const sinAcento=s=>String(s??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
@@ -759,6 +815,8 @@ document.addEventListener('click',x=>{
   switch(a){
    case 'ficha':return go('ficha');
    case 'tab':tab=k;return render();
+   case 'verMapa':{const m=MARC.get(k);if(m&&MAPA_PRE){$('#mapa-pre').scrollIntoView({block:'center'});MAPA_PRE.setView(m.getLatLng(),16,{animate:false});m.openPopup()}return}
+   case 'preMas':PQ.n+=100;{const r=$('#prows');if(r)r.innerHTML=filasPre();const c=$('#pcount');if(c)c.textContent=resumenPre()}return;
    case 'mapaGuardar':{if(!MAPA_PEND)return;const [la,lo]=MAPA_PEND;return mut(e,['crearA','levantarB'],'Ubicación ajustada en el mapa',()=>{e.origen.latitud=+la.toFixed(6);e.origen.longitud=+lo.toFixed(6);e.origen.fuente_geocodificacion=CAT.fuente_geo[0];e.origen.punto_validado='Sí'})}
    case 'instalar':{if(!window.__instalar)return;window.__instalar.prompt();window.__instalar=null;$('#instalar').hidden=true;return}
    case 'abrirRes':{$('#gres').hidden=true;$('#gq').value='';cur=id;view='det';tab=k||'resumen';const z=ev();seenVer=z?z.version:0;render();return scrollTo(0,0)}
@@ -775,10 +833,11 @@ document.addEventListener('click',x=>{
    case 'nav':if(k==='reset')return confirmar('Reiniciar datos','Se borran los eventos que capturaste y vuelven los 3 de ejemplo. Tu hoja de validación no se borra.','Reiniciar',()=>{try{localStorage.removeItem('pimsy_estado3')}catch(x){}seed();view='eventos';cur=null;render();toast('Datos de ejemplo restaurados.')},true);return go(k);
    case 'abrir':return go('det',id);
    case 'otra':e.version++;aud(e,'UPDATE','evento','Edición simulada de otra área');return toast('Otra área guardó. Tu pantalla ya está desactualizada: intenta guardar.');
-   case 'nuevoA':return abrirForm({entKey:'evento',titulo:'Nuevo evento (Ruta A, origen primero)',e:null,fields:EVENTO,values:{municipio:'Juárez',entidad:'Chihuahua'},
-     aviso:'Basta con tipo de origen y fecha: el resto lo pueden completar después las áreas autorizadas (registro mínimo).',okLabel:'Crear evento',ok:vals=>crearA(vals)});
+   case 'nuevoA':return abrirForm({entKey:'evento',titulo:'Nuevo evento (Ruta A, origen primero)',e:null,fields:[CAMPO_PREREG,...EVENTO],values:{municipio:'Juárez',entidad:'Chihuahua'},
+     aviso:'Puedes prellenarlo con un preregistro del reporte de CERI (primer campo) o capturarlo a mano: basta con tipo de origen y fecha.',okLabel:'Crear evento',ok:vals=>{const {prereg,...o}=vals;crearA(o,prereg?S.pre.find(z=>z.folio===prereg.split(' ')[0]&&!z.evento):undefined)}});
    case 'nuevoB':{const n=mkEv('B');n.estado='borrador_sin_origen';aud(n,'INSERT','evento','Ruta B: provisional');S.eventos.push(n);go('det',n.id);return toast(`${n.ref} creado en borrador sin origen.`)}
-   case 'promover':{const p=S.pre.find(z=>z.folio===k);return crearA(desdePre(p),p)}
+   case 'promover':{const p=S.pre.find(z=>z.folio===k);
+     return abrirForm({entKey:'evento',titulo:'Revisa el evento antes de crearlo',e:null,fields:EVENTO,values:desdePre(p),aviso:`Prellenado con el preregistro <b>${esc(p.folio)}</b> del reporte de CERI. Corrige lo que haga falta.`,okLabel:'Crear evento',ok:vals=>crearA(vals,p)})}
    case 'origen':return abrirForm({entKey:'evento',titulo:'Datos del evento, origen y ubicación',e,fields:EVENTO,values:JSON.parse(JSON.stringify(e.origen)),ok:vals=>{
        if(vals.folio_ceri&&S.eventos.some(z=>z.id!==e.id&&z.origen.folio_ceri===vals.folio_ceri))return toast('Folio CERI duplicado: se rechaza (REQ-EVT-01).',1);
        mut(e,['crearA','levantarB'],'Origen y ubicación actualizados',()=>{e.origen=vals})}});
@@ -825,8 +884,9 @@ document.addEventListener('click',x=>{
   }});
 document.addEventListener('input',x=>{
   if(x.target.id==='gq'){mostrarResultados();return}
+  if(x.target.dataset.f==='pq'){PQ.q=x.target.value;PQ.n=50;$('#prows').innerHTML=filasPre();$('#pcount').textContent=resumenPre();refrescarMapaPre(true);return}
   const kb=x.target.dataset.knob;if(kb){const v=THEME.set({[kb]:+x.target.value}),o=document.getElementById('o_'+kb);if(o)o.textContent=v[kb]+(THEME.knobs.find(k=>k.id===kb).unidad||'');return}
-  const f=x.target.dataset.f;if(f){FL[f]=x.target.type==='checkbox'?x.target.checked:x.target.value;$('#rows').innerHTML=filas();return}
+  const f=x.target.dataset.f;if(f==='q'||f==='st'||f==='mio'){FL[f]=x.target.type==='checkbox'?x.target.checked:x.target.value;$('#rows').innerHTML=filas();return}
   const k=x.target.dataset.h;if(!k)return;const h=hojaLoad(dept);h[k]=x.target.value;hojaSave(dept,h)});
 document.addEventListener('change',x=>{const f=x.target.dataset.f;
   if(x.target.dataset.tarea){SES.hechas[x.target.dataset.tarea]=x.target.checked;sesSave();renderSesion();return}
