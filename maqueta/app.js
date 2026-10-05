@@ -5,9 +5,8 @@
    Esquemas de campos: esquema.js · catálogos: catalogos.js
    ===================================================================== */
 const $=s=>document.querySelector(s);
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const ICO={check:'<path d="M20 6 9 17l-5-5"/>',x:'<path d="M18 6 6 18M6 6l12 12"/>',alert:'<path d="m21.7 18-8-14a2 2 0 0 0-3.4 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3Z"/><path d="M12 9v4M12 17h.01"/>',clock:'<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',minus:'<path d="M5 12h14"/>',lock:'<rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',back:'<path d="m12 19-7-7 7-7M19 12H5"/>',search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',moon:'<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',auto:'<rect width="20" height="14" x="2" y="3" rx="2"/><path d="M8 21h8M12 17v4"/>',help:'<circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/>',go:'<path d="M5 12h14m-7-7 7 7-7 7"/>',inbox:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.7 4H7.3a2 2 0 0 0-1.8 1.1Z"/>',plus:'<path d="M5 12h14M12 5v14"/>',chev:'<path d="m6 9 6 6 6-6"/>'};
-const ic=n=>`<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICO[n]||''}</svg>`;
+const UA=UI.atoms,UM=UI.molecules,UO=UI.organisms;
+const esc=UI.esc,ic=UA.icon;
 function rel(iso){const m=Math.round((Date.now()-new Date(iso))/60000);if(m<1)return 'hace un momento';if(m<60)return `hace ${m} min`;const h=Math.round(m/60);if(h<24)return `hace ${h} h`;return `hace ${Math.round(h/24)} d`}
 
 /* ===== Departamentos, permisos y piezas ===== */
@@ -43,13 +42,13 @@ const AGENTES_MONGO={ // simulacro de MongoDB (sintético)
   'E-0001':{nombre:'Agente',ap:'Sintético',am:'Uno',distrito:'CENTRO',area:'Operaciones',subarea:'Patrullas',puesto:'Policía',unidad:'U-101'},
   'E-0002':{nombre:'Agente',ap:'Sintético',am:'Dos',distrito:'ORIENTE',area:'Operaciones',subarea:'Patrullas',puesto:'Policía',unidad:'U-205'},
   'E-0003':{nombre:'Agente',ap:'Sintético',am:'Tres',distrito:'SUR',area:'Coordinación',subarea:'Mando',puesto:'Supervisor',unidad:'U-310'}};
-const DCOL={ceri:'#0ea5e9',tel:'#f59e0b',policia:'#2563eb',coord:'#7c3aed',barandilla:'#ea580c',juridico:'#059669',plataforma:'#db2777',analista:'#64748b'};
+const DCOL={ceri:'var(--dept-ceri)',tel:'var(--dept-tel)',policia:'var(--dept-policia)',coord:'var(--dept-coord)',barandilla:'var(--dept-barandilla)',juridico:'var(--dept-juridico)',plataforma:'var(--dept-plataforma)',analista:'var(--dept-analista)'};
 const ROL={ceri:'Importo el reporte de CERI y abro eventos',tel:'Consulto y doy mi opinión sobre mi parte del flujo',policia:'Registro lo que pasó: detenidos, bienes, parte informativa',coord:'Agrego agentes y capturo la parte informativa',barandilla:'Registro detenidos y sus anexos',juridico:'Armo el IPH, lo enruto, lo firmo y lo envío',plataforma:'Concilio duplicados y cierro eventos',analista:'Consulto resúmenes y fichas'};
 const CADUCA_DIAS=30; // VALOR DE EJEMPLO, POR VALIDAR(Q-29)
 const UMBRAL_MIN=60;  // VALOR DE EJEMPLO, POR VALIDAR(Q-05)
 const Q={'Q-01':'¿Quién puede levantar un evento y por cuál ruta?','Q-02':'¿Coordinación General y Teléfono Comunitario son áreas con permisos propios o unidades? ¿Levantan eventos o solo supervisan?','Q-03':'¿Teléfono Comunitario genera folio CERI o uno propio?','Q-04':'¿Quién agrega cada pieza al evento (agentes, IPH, detenidos, aseguramientos, parte)?','Q-05':'¿Quién concilia y fusiona duplicados y en cuánto tiempo? (umbrales de duplicado)','Q-06':'¿Plataforma cierra y jurídico reabre? ¿Qué se edita tras el cierre y quién anula?','Q-07':'Login compartido: ¿de qué sistema nace el usuario?','Q-08':'¿Quién captura agentes y cuándo? ¿El cierre exige al menos uno?','Q-09':'¿Cómo se enlaza SIPROB con el evento?','Q-10':'¿Quién es dueño del dato de detención, PIMSy o SIPROB?','Q-11':'¿SIPROB ya captura condición del detenido, familiar, pertenencias y atención médica?','Q-12':'¿Cómo se registra un delito/falta sin detenido?','Q-13':'¿Qué pasa con un detenido que va a entrega de hechos o parte informativo y no a IPH?','Q-14':'¿La atención a emergencia se permite siempre o solo sin detención ni aseguramiento?','Q-15':'¿Dónde va el dinero: objeto especial o sustancia?','Q-16':'¿Catálogo único de armas y sustancias para parte e IPH?','Q-17':'¿Los testigos de aseguramiento son persona maestra o dato libre?','Q-18':'¿La inspección y preservación del lugar son del IPH o del evento?','Q-19':'¿Se registran vehículos inspeccionados que no se aseguran?','Q-20':'¿Cómo se registran agentes de otra institución?','Q-21':'¿El anexo de uso de la fuerza del IPH se deriva del informe? (IUF sin mapear)','Q-22':'¿Fecha/hora de conocimiento y arribo vienen de CERI o se capturan?','Q-23':'¿La marca de documentación complementaria se captura a mano?','Q-24':'¿Cuál es la lista vigente de campos del IPH?','Q-25':'¿Recorridos y patrullajes se registran siempre o solo si derivan en algo?','Q-26':'¿La clasificación de la intervención se captura al abrir o se deriva?','Q-27':'¿Se restituyen agrupamientos, autoridades participantes y denominación? ¿Cómo el motivo activa datos?','Q-28':'¿Se alinean los criterios de inclusión con el requerimiento original?','Q-29':'¿Formato regular del reporte de CERI? ¿Días para caducar un preregistro?','Q-30':'¿Google o geocodificador/mapa locales?','Q-31':'¿Dónde se guardan los croquis?','Q-32':'¿Cómo es la transición desde MongoDB?','Q-33':'¿Qué protección de datos se fija desde ahora (menores, víctimas, domicilios)?','Q-34':'¿Usuarios concurrentes y registros por año?','Q-35':'¿Política de refresco de las vistas?'};
 const QDEPT={ceri:['Q-03','Q-22','Q-29'],tel:['Q-01','Q-02','Q-03'],policia:['Q-01','Q-04','Q-08','Q-14','Q-19','Q-25','Q-26'],coord:['Q-02','Q-08','Q-20','Q-27'],barandilla:['Q-09','Q-10','Q-11','Q-13','Q-17'],juridico:['Q-06','Q-12','Q-13','Q-15','Q-16','Q-18','Q-21','Q-24'],plataforma:['Q-05','Q-06','Q-07','Q-29','Q-31','Q-32','Q-34','Q-35'],analista:['Q-28','Q-33','Q-35']};
-const pv=q=>`<span class="pv" title="${esc(Q[q]||'')}">POR VALIDAR(${q})</span>`;
+const pv=q=>UA.tagValidar(q,Q[q]);
 
 /* ===== Coordenadas: UTM zona 13N (reporte CERI) a latitud/longitud. Aproximación de la maqueta; en producción lo hace PostGIS. ===== */
 function utm2ll(E,N,zone=13){const a=6378137,f=1/298.257223563,k0=.9996,e2=f*(2-f),ep2=e2/(1-e2),x=E-500000,M=N/k0,
@@ -107,9 +106,8 @@ function can(a){
 }
 function B(label,act,perm,extra='',cls=''){
   const p=perm?can(perm):{ok:true};
-  return `<span><button class="${cls}" data-act="${act}" ${extra} ${p.ok?'':'disabled'}>${label}</button>${p.ok?'':`<span class="why">${esc(p.why)}${p.q?' '+pv(p.q):''}</span>`}</span>`;
-}
-function Bm(label,act,perm,extra='',cls='sec'){const p=can(perm);return `<button class="${cls} sm" data-act="${act}" ${extra} ${p.ok?'':`disabled title="${esc(p.why)}"`}>${label}</button>`}
+  return UM.actionButton({label,act,kind:cls,allowed:p.ok,why:p.why||'',tagQ:p.q||'',tagTitle:p.q?Q[p.q]:'',attrs:extra})}
+function Bm(label,act,perm,extra='',cls='sec'){const p=can(perm);return UM.compactButton({label,act,kind:cls,allowed:p.ok,why:p.why||'',attrs:extra})}
 
 /* ===== Reglas de dominio ===== */
 const estC=c=>c.hijos.length?'registrado':c.estado;
@@ -148,8 +146,7 @@ const compOf=(e,id)=>Object.keys(e.comp).find(k=>e.comp[k].hijos.some(x=>x.id===
 
 /* ===== Avisos, deshacer, confirmación ===== */
 function toast(m,t,act){ // t===1 → error; otro → éxito. act={label,fn}
-  const el=document.createElement('div'),err=t===1;el.className='toast '+(err?'e':'o');el.setAttribute('role',err?'alert':'status');
-  el.innerHTML=`${ic(err?'alert':'check')}<span>${esc(m)}</span>${act?`<button class="lnk">${act.label}</button>`:''}<button class="x" aria-label="Cerrar aviso">${ic('x')}</button>`;
+  const el=UM.toast({mensaje:m,tipo:t===1?'e':'o',accion:act});
   el.querySelector('.x').onclick=()=>el.remove();if(act)el.querySelector('.lnk').onclick=()=>{el.remove();act.fn()};
   $('#toasts').appendChild(el);setTimeout(()=>el.remove(),act?9000:5500);return false}
 let prevS=null;
@@ -158,7 +155,7 @@ function deshacer(){if(!prevS)return;S.eventos=JSON.parse(prevS);prevS=null;aud(
 const UNDO={label:'Deshacer',fn:()=>deshacer()};
 function confirmar(t,txt,label,fn,danger){
   const d=$('#dlg');d.className='';d.oncancel=null;
-  d.innerHTML=`<form method="dialog"><h3 id="dlgt">${t}</h3><p>${txt}</p><div class="row end"><button type="button" class="sec" onclick="$('#dlg').close()">Cancelar</button><button type="submit" class="${danger?'bad':''}" autofocus>${label}</button></div></form>`;
+  d.innerHTML=UO.confirmDialog({titulo:t,texto:txt,etiqueta:label,peligro:!!danger});
   d.querySelector('form').onsubmit=x=>{x.preventDefault();d.close();fn()};d.showModal()}
 
 // Toda escritura pasa por aquí: permiso, estado, versión (bloqueo optimista), auditoría
@@ -178,37 +175,27 @@ const optsOf=(f,e)=>{const o=f.o;if(!o)return [];const L=typeof o==='function'?o
 function campo(f,i,e){
   const k=f.k;
   if(f.sec)return `<h4 class="fsec" id="sec_${i}" x-show="vis(${i})">${esc(f.sec)}${f.pv?pv(f.pv):''}</h4>`;
-  const dis=f.act&&!can(f.act).ok?`disabled`:'',nota=dis?`<small class="ay">${esc(can(f.act).why)}</small>`:'';
+  const bloq=f.act&&!can(f.act).ok,dis=bloq?'disabled':'';
   const full=['textarea','multi','calc'].includes(f.t)||f.t==='checkbox';
-  const ej=typeof f.o==='string'&&CATSRC[f.o]==='ejemplo'?'<span class="ej" title="Catálogo de ejemplo: el oficial lo carga la SSPM">ejemplo</span>':'';
-  const okic=`<span class="vok" x-show="okf('${k}')" title="Correcto">${ic('check')}</span>`;
-  const lab=`<label for="f_${k}">${esc(f.l)}${f.r?' <b class="no" title="Obligatorio">*</b>':''}${f.pv?pv(f.pv):''}${ej}${okic}</label>`;
+  const ej=typeof f.o==='string'&&CATSRC[f.o]==='ejemplo'?UA.tagEjemplo():'';
   const m=`x-model="v['${k}']"`,cls=`:class="{inv:bad('${k}')}"`,ar=`:aria-invalid="bad('${k}')"`;
   let ctl='';
+  if(f.t==='checkbox')return `<div class="fld full" x-show="vis(${i})"><label class="chkl big"><input id="f_${k}" type="checkbox" ${m} ${dis}> ${esc(f.l)}${f.pv?pv(f.pv):''}</label>${f.ayuda?`<small class="ay">${esc(f.ayuda)}</small>`:''}</div>`;
   if(f.t==='textarea')ctl=`<textarea id="f_${k}" rows="3" ${m} ${cls} ${ar} ${dis}></textarea>`;
   else if(f.t==='select')ctl=`<select id="f_${k}" ${m} ${cls} ${ar} ${dis}><option value="">Elige una opción</option>${optsOf(f,e).map(o=>`<option value="${esc(o.v)}">${esc(o.l)}</option>`).join('')}</select>`;
-  else if(f.t==='bool')ctl=`<div class="seg" role="group" aria-label="${esc(f.l)}"><button type="button" :class="{on:v['${k}']==='Sí'}" @click="v['${k}']=v['${k}']==='Sí'?'':'Sí'" ${dis}>Sí</button><button type="button" :class="{on:v['${k}']==='No'}" @click="v['${k}']=v['${k}']==='No'?'':'No'" ${dis}>No</button></div>`;
+  else if(f.t==='bool')ctl=UM.yesNo({modelo:`v['${k}']`,etiqueta:f.l,disabled:bloq});
   else if(f.t==='lista')ctl=`<input id="f_${k}" list="dl_${k}" autocomplete="off" placeholder="Escribe para buscar" ${m} ${cls} ${ar} ${dis}><datalist id="dl_${k}">${optsOf(f,e).map(o=>`<option value="${esc(o.v)}">`).join('')}</datalist>`;
   else if(f.t==='multi')ctl=`<div class="multi">${optsOf(f,e).map(o=>`<label class="chkl"><input type="checkbox" value="${esc(o.v)}" :checked="(v['${k}']||[]).includes($el.value)" @change="tog('${k}',$el.value,$el.checked)" ${dis}> ${esc(o.l)}</label>`).join('')||'<span class="mut small">No hay opciones todavía.</span>'}</div>`;
-  else if(f.t==='checkbox')return `<div class="fld full" x-show="vis(${i})"><label class="chkl big"><input id="f_${k}" type="checkbox" ${m} ${dis}> ${esc(f.l)}${f.pv?pv(f.pv):''}</label>${f.ayuda?`<small class="ay">${esc(f.ayuda)}</small>`:''}</div>`;
   else if(f.t==='calc')ctl=`<div class="calc" x-text="calc(${i})"></div>`;
   else{
     const tel=/telefono/.test(k),cp=/codigo_postal/.test(k),curp=k==='curp',num=f.t==='number';
     const extra=[tel?'type="tel" inputmode="tel"':num?'type="number" inputmode="decimal" step="any"':`type="${f.t||'text'}"`,cp?'inputmode="numeric" maxlength="5"':'',curp?'maxlength="18" autocapitalize="characters"':'','autocomplete="off"'].join(' ');
     ctl=`<input id="f_${k}" ${extra} ${m} ${cls} ${ar} ${dis}>`}
-  return `<div class="fld ${full?'full':''}" x-show="vis(${i})" @focusout="touched['${k}']=true">${lab}${ctl}${f.ayuda?`<small class="ay">${esc(f.ayuda)}</small>`:''}${nota}<span class="ferr" role="alert" x-text="bad('${k}')?errs['${k}']:''"></span></div>`}
+  return UM.field({id:k,clave:k,indice:i,etiqueta:f.l,obligatorio:!!f.r,tagsHtml:(f.pv?pv(f.pv):'')+ej,controlHtml:ctl,ayuda:f.ayuda||'',nota:bloq?can(f.act).why:'',ancho:full})}
 function abrirForm(c){ // c:{titulo,fields,values,e,ok,okLabel,pv,aviso,draftKey}
   const d=$('#dlg');window.__F=c;d.className='big';
-  const secs=c.fields.map((f,i)=>f.sec?{i,t:f.sec}:null).filter(Boolean);
-  d.innerHTML=`<form novalidate x-data="formApp()" @submit.prevent="enviar()">
-   <div class="dh"><h3 id="dlgt">${esc(c.titulo)}${c.pv?pv(c.pv):''}</h3><button type="button" class="ghost" aria-label="Cerrar" @click="cancelar()">${ic('x')}</button></div>
-   ${c.aviso?`<p class="small mut" style="margin:0 0 8px">${c.aviso}</p>`:''}
-   <div class="alert" x-show="restored" x-cloak>Recuperamos un borrador sin guardar. <button type="button" class="sec sm" @click="descartarBorrador()">Empezar de nuevo</button></div>
-   <div class="rp" x-show="tot()>0"><div class="bar"><i :style="'width:'+pct()+'%'"></i></div><span class="small mut" x-text="txtProg()"></span></div>
-   ${secs.length>2?`<div class="chips">${secs.map(s=>`<button type="button" class="chip" @click="irA(${s.i})">${esc(s.t)}</button>`).join('')}</div>`:''}
-   <div class="fg">${c.fields.map((f,i)=>campo(f,i,c.e)).join('')}</div>
-   <div class="foot"><div class="alert" x-show="descartando" x-cloak style="margin:0 0 8px">¿Descartar lo que capturaste? <button type="button" class="sec sm" @click="descartando=false">Seguir editando</button> <button type="button" class="bad sm" @click="descartar()">Descartar</button></div>
-    <div class="row end"><span class="small mut" style="flex:1" x-text="estado()"></span><button type="button" class="sec" @click="cancelar()">Cancelar</button><button type="submit">${c.okLabel||'Guardar'}</button></div></div></form>`;
+  const chips=c.fields.map((f,i)=>f.sec?{i,t:f.sec}:null).filter(Boolean);
+  d.innerHTML=UO.formDialog({titulo:c.titulo,tagHtml:c.pv?pv(c.pv):'',aviso:c.aviso||'',chips,camposHtml:c.fields.map((f,i)=>campo(f,i,c.e)).join(''),okLabel:c.okLabel||'Guardar'});
   d.oncancel=x=>{const fa=window.__fa;if(fa&&fa.dirty()){x.preventDefault();fa.descartando=true}};
   d.showModal()}
 function formApp(){
@@ -265,15 +252,17 @@ function formApp(){
    fin(){const out={};fl.forEach(f=>{if(f.k&&f.t!=='calc'&&(!f.show||f.show(this.v,c.e)))out[f.k]=JSON.parse(JSON.stringify(this.v[f.k]))});this.limpiarBorrador();$('#dlg').close();c.ok(out)}}}
 
 /* ===== Vistas ===== */
-const THEMES=['auto','light','dark'],TL={auto:'Tema: automático',light:'Tema: claro',dark:'Tema: oscuro'};
-function theme(m){const r=document.documentElement;if(m==='auto')r.removeAttribute('data-theme');else r.dataset.theme=m;
-  try{localStorage.setItem('pimsy_tema',m)}catch(x){}
-  $('#theme').innerHTML=ic({auto:'auto',light:'sun',dark:'moon'}[m]);$('#theme').title=TL[m];$('#theme').setAttribute('aria-label',TL[m])}
+const SCHEMES=['auto','light','dark'],TL={auto:'Tema: automático',light:'Tema: claro',dark:'Tema: oscuro'};
+function theme(m){THEME.setScheme(m);$('#theme').innerHTML=ic({auto:'auto',light:'sun',dark:'moon'}[m]);$('#theme').title=TL[m];$('#theme').setAttribute('aria-label',TL[m])}
+function abrirDiseno(){
+  const d=$('#dlg');d.className='big';d.oncancel=null;const v=THEME.values();
+  d.innerHTML=UO.themePanel({perillas:THEME.knobs.map(k=>({id:k.id,etiqueta:k.etiqueta,min:k.min,max:k.max,paso:k.paso,unidad:k.unidad,valor:v[k.id]})),matices:THEME.matices});
+  d.showModal()}
 function render(){
   try{localStorage.setItem('pimsy_estado2',JSON.stringify({S,AGENTES_MONGO}))}catch(x){}
   $('#dept').value=dept;document.documentElement.style.setProperty('--dc',DCOL[dept]);
   const tabs=[['eventos','Eventos'],['pre','Preregistros CERI'],['conc','Conciliación'],['guia','Guía paso a paso'],['perm','Permisos'],['hoja','Hoja de validación'],['aud','Auditoría'],['reset','Reiniciar datos']];
-  $('#nav').innerHTML=tabs.map(([k,l])=>{const on=view===k||(k==='eventos'&&view==='det');return `<button data-act="nav" data-k="${k}" class="${on?'on':''}" ${on?'aria-current="page"':''}>${l}</button>`}).join('');
+  $('#nav').innerHTML=UO.navBar({items:tabs,actual:view==='det'?'eventos':view,act:'nav'});
   const dd=DEPTS[dept];
   const head=`<p class="legend noprint">Maqueta con datos 100% sintéticos. Departamento activo: <b>${dd.n}</b>${dd.q?pv(dd.q):''}. Lo que no le corresponde aparece deshabilitado con su leyenda. Las etiquetas ${pv('Q-xx')} marcan lo no decidido. Los catálogos marcados «ejemplo» son ficticios.</p>`;
   $('#app').innerHTML=head+({eventos:vLista,det:vDetalle,ficha:vFicha,guia:vGuia,pre:vPre,conc:vConc,perm:vPerm,hoja:vHoja,aud:vAud}[view])();
@@ -290,7 +279,7 @@ function vFicha(){
   ${piezas}
   <h3>¿Se puede cerrar?</h3><ul class="chk">${cierre(e).map(x=>`<li class="${x.ok?'ok':'no'}">${ic(x.ok?'check':'x')}<span>${x.t}</span></li>`).join('')}</ul></div></div>`}
 const ETQ={pendiente:ic('clock')+' Falta',registrado:ic('check')+' Registrado',sin_novedad:ic('minus')+' Sin novedad',borrador_sin_origen:'Borrador sin origen',abierto:'Abierto',en_proceso:'En proceso',cerrado:ic('lock')+' Cerrado',reabierto:'Reabierto',anulado:'Anulado',borrador:'Borrador',firmado:'Firmado',enviado:'Enviado'};
-const stB=s=>`<span class="b ${s}">${ETQ[s]||s}</span>`;
+const stB=s=>UA.badge(s,ETQ[s]||s);
 const motCorto=m=>m?m.replace(/\s*\(\d+\)$/,'').split(' > ').pop():'';
 function pasos(e){
   const L=[];
@@ -307,33 +296,29 @@ function pasos(e){
 function filas(){
   const q=FL.q.trim().toLowerCase();
   const L=S.eventos.filter(e=>(!FL.st||e.estado===FL.st)&&(!q||[e.ref,e.origen.folio_ceri,e.origen.colonia,e.origen.motivo,e.origen.calle].join(' ').toLowerCase().includes(q))&&(!FL.mio||pasos(e).length>0)&&(!FL.listo||(!['cerrado','anulado'].includes(e.estado)&&cierre(e).every(x=>x.ok)))&&(!FL.dup||!!duplicado(e)));
-  if(!L.length)return `<tr><td colspan="7"><div class="vacio">${ic('inbox')}<p>No hay eventos con esos filtros.</p><button class="sec" data-act="limpiar">Limpiar filtros</button></div></td></tr>`;
+  if(!L.length)return `<tr><td colspan="7">${UM.emptyState({texto:'No hay eventos con esos filtros.',accionHtml:UA.button({label:'Limpiar filtros',act:'limpiar',kind:'sec'})})}</td></tr>`;
   return L.map(e=>{const d=duplicado(e);return `<tr class="click" tabindex="0" data-act="abrir" data-id="${e.id}"><td data-l="Evento"><b>${e.ref}</b></td>
    <td class="hm" data-l="Folio CERI">${esc(e.origen.folio_ceri||'—')}</td><td data-l="Estado">${stB(e.estado)}</td><td class="hm" data-l="Cómo nació">${e.ruta==='A'?'Desde el origen':'Desde un formulario'}<div class="small mut">${DEPTS[e.creada].n}</div></td>
    <td data-l="De qué trata">${esc(motCorto(e.origen.motivo)||e.origen.colonia||'(sin origen)')}</td><td data-l="Faltan">${pendientes(e)?`<b>${pendientes(e)}</b> piezas`:'—'}</td><td data-l="Aviso">${d?`<span class="b pendiente">posible duplicado de ${d.ref}</span>`:''}</td></tr>`}).join('')}
 function vLista(){
   let oculto=false;try{oculto=localStorage.getItem('pimsy_hero')==='1'}catch(x){}
-  const hero=oculto?'':`<div class="hero"><div class="row"><h2 style="margin:0">¿Cómo funciona PIMSy?</h2><span style="flex:1"></span><button class="sec" data-act="heroOff">Entendido, ocultar</button></div>
-   <p>Cada situación atendida es un <b>evento</b>. Entre todas las áreas lo van armando: <b>cada quien agrega solo lo suyo, una sola vez</b>.</p>
-   <div class="pasos"><div class="paso"><b>1. Elige quién eres</b>Arriba, en «Soy del departamento». Verás solo lo que te toca.</div>
-   <div class="paso"><b>2. Abre un evento</b>Haz clic en una fila. Te diré cuál es tu siguiente paso.</div>
-   <div class="paso"><b>3. Aporta tu parte</b>Registra lo que hubo o marca «Sin novedad».</div>
-   <div class="paso"><b>4. Valida y comenta</b>En «Hoja de validación» dinos qué falta o sobra.</div></div>
-   <p class="small mut">Las etiquetas ${pv('Q-xx')} son cosas que aún no se deciden. Todo es de prueba: nada es real. Atajos: <b>/</b> buscar, <b>Esc</b> cerrar.</p></div>`;
+  const hero=oculto?'':UO.welcome({titulo:'¿Cómo funciona PIMSy?',intro:'Cada situación atendida es un <b>evento</b>. Entre todas las áreas lo van armando: <b>cada quien agrega solo lo suyo, una sola vez</b>.',
+    pasos:[{titulo:'1. Elige quién eres',texto:'Arriba, en «Soy del departamento». Verás solo lo que te toca.'},{titulo:'2. Abre un evento',texto:'Haz clic en una fila. Te diré cuál es tu siguiente paso.'},{titulo:'3. Aporta tu parte',texto:'Registra lo que hubo o marca «Sin novedad».'},{titulo:'4. Valida y comenta',texto:'En «Hoja de validación» dinos qué falta o sobra.'}],
+    pieHtml:`<p class="small mut">Las etiquetas ${pv('Q-xx')} son cosas que aún no se deciden. Todo es de prueba: nada es real. Atajos: <b>/</b> buscar, <b>Esc</b> cerrar.</p>`,
+    botonOcultar:UA.button({label:'Entendido, ocultar',act:'heroOff',kind:'sec'})});
   const ests=['borrador_sin_origen','abierto','en_proceso','cerrado','reabierto','anulado'];
   const vivos=S.eventos.filter(e=>!['cerrado','anulado'].includes(e.estado));
-  const kp=[['Todos los eventos',S.eventos.length,'todos:','false'],['Donde me falta aportar',S.eventos.filter(e=>pasos(e).length>0).length,'mio:',FL.mio],
-    ['Listos para cerrar',vivos.filter(e=>cierre(e).every(x=>x.ok)).length,'listo:',FL.listo],['Provisionales',S.eventos.filter(e=>e.estado==='borrador_sin_origen').length,'st:borrador_sin_origen',FL.st==='borrador_sin_origen'],
-    ['Posibles duplicados',S.eventos.filter(e=>duplicado(e)).length,'dup:',FL.dup]];
-  const kpis=`<div class="kpis">${kp.map(([l,n,k,on])=>`<button class="kpi" data-act="kpi" data-k="${k}" aria-pressed="${on===true}"><b>${n}</b><span>${l}</span></button>`).join('')}</div>`;
-  return hero+kpis+`<div class="card"><div class="row"><h2 style="margin:0">Eventos</h2><span style="flex:1"></span>
+  const kpis=UO.kpiRow([{etiqueta:'Todos los eventos',valor:S.eventos.length,clave:'todos:'},{etiqueta:'Donde me falta aportar',valor:S.eventos.filter(e=>pasos(e).length>0).length,clave:'mio:',pulsada:FL.mio},
+    {etiqueta:'Listos para cerrar',valor:vivos.filter(e=>cierre(e).every(x=>x.ok)).length,clave:'listo:',pulsada:FL.listo},{etiqueta:'Provisionales',valor:S.eventos.filter(e=>e.estado==='borrador_sin_origen').length,clave:'st:borrador_sin_origen',pulsada:FL.st==='borrador_sin_origen'},
+    {etiqueta:'Posibles duplicados',valor:S.eventos.filter(e=>duplicado(e)).length,clave:'dup:',pulsada:FL.dup}]);
+  return hero+kpis+`<div class="card"><div class="row"><h2 style="margin:0">Eventos</h2><span class="grow"></span>
    ${B('Nuevo evento (Ruta A)','nuevoA',['crearA'])}${B('Levantar evento (Ruta B)','nuevoB',['levantarB'])}</div>
-   <div class="filtros"><div class="bx">${ic('search')}<input id="q" data-f="q" type="search" placeholder="Buscar por folio, colonia o motivo  ( / )" aria-label="Buscar eventos" value="${esc(FL.q)}"></div>
+   <div class="filtros">${UM.searchBox({id:'q',clave:'q',valor:FL.q,placeholder:'Buscar por folio, colonia o motivo  ( / )',etiqueta:'Buscar eventos'})}
     <select data-f="st" aria-label="Filtrar por estado"><option value="">Todos los estados</option>${ests.map(k=>`<option value="${k}" ${FL.st===k?'selected':''}>${ETQ[k].replace(/<[^>]+>/g,'').trim()}</option>`).join('')}</select>
-    <label class="row" style="gap:6px"><input type="checkbox" data-f="mio" ${FL.mio?'checked':''} style="width:auto;height:auto"> Solo donde me falta aportar</label></div>
+    <label class="chkl"><input type="checkbox" data-f="mio" ${FL.mio?'checked':''}> Solo donde me falta aportar</label></div>
    <div class="sc"><table class="rs"><tr><th>Evento</th><th>Folio CERI</th><th>Estado</th><th>Cómo nació</th><th>De qué trata</th><th>Faltan</th><th>Aviso</th></tr><tbody id="rows">${filas()}</tbody></table></div></div>`}
 
-function linea(a){return a.length?`<ol class="tl">${a.map(x=>`<li><b>${esc(x.det)}</b><div class="small mut">${DEPTS[x.area].n} · ${rel(x.en)} · ${x.tabla}</div></li>`).join('')}</ol>`:`<div class="vacio">${ic('inbox')}<p>Todavía no hay movimientos.</p></div>`}
+function linea(a){return UO.timeline({items:a.map(x=>({titulo:x.det,detalle:`${DEPTS[x.area].n} · ${rel(x.en)} · ${x.tabla}`})),vacio:'Todavía no hay movimientos.'})}
 
 /* Ficha: todos los campos con dato de un registro */
 function valTxt(f,val,e){
@@ -343,8 +328,7 @@ function valTxt(f,val,e){
   if(f.t==='checkbox')return val?'Sí':'No';
   return val}
 function fichaHtml(fields,d,e){
-  const L=fields.filter(f=>f.k&&f.t!=='calc'&&d[f.k]!==undefined&&d[f.k]!==''&&!(Array.isArray(d[f.k])&&!d[f.k].length)).map(f=>`<dt>${esc(f.l)}</dt><dd>${esc(valTxt(f,d[f.k],e))}</dd>`);
-  return L.length?`<dl class="ficha">${L.join('')}</dl>`:'<p class="small mut">Sin datos capturados todavía.</p>'}
+  return UM.dataList(fields.filter(f=>f.k&&f.t!=='calc'&&d[f.k]!==undefined&&d[f.k]!==''&&!(Array.isArray(d[f.k])&&!d[f.k].length)).map(f=>[f.l,valTxt(f,d[f.k],e)]))}
 
 function filaHijo(e,k,h){
   const E=ENT[h.ent],act=h.ent==='iph'?['iphEditar','iphAsignar']:E.act;let extra='',bt='';
@@ -353,17 +337,16 @@ function filaHijo(e,k,h){
     if(h.estado==='borrador')bt+=Bm('Firmar','firma','iphEditar',`data-id="${h.id}"`);if(h.estado==='firmado')bt+=Bm('Enviar','envia','iphEditar',`data-id="${h.id}"`)}
   return `<div class="hj"><div class="hj-t"><span class="mut">[${DEPTS[h.area]?.n||h.area}]</span> ${esc(E.res(h.d,e,h))}${extra}</div>
    <div class="row">${bt}${Bm('Editar','edit',act,`data-id="${h.id}" data-k="${k}"`)}${Bm('Quitar','quitar',act,`data-id="${h.id}" data-k="${k}"`)}</div>
-   <details class="fi"><summary>Ver todos los campos</summary>${fichaHtml(E.fields(e),h.d,e)}</details></div>`}
+   ${UM.disclosure({resumen:'Ver todos los campos',html:fichaHtml(E.fields(e),h.d,e)})}</div>`}
 function pieza(e,k){
   const m=COMP[k],c=e.comp[k],s=estC(c),ents=POR_PIEZA[k];
-  const menu=ents.map(en=>{const E=ENT[en],act=en==='iph'?['iphEditar','iphAsignar']:E.act,p=can(act);
-    return `<button class="mi sec" data-act="add" data-k="${k}" data-ent="${en}" ${p.ok?'':`disabled title="${esc(p.why)}"`}>${E.n}${E.pv?pv(E.pv):''}</button>`}).join('');
-  const any=ents.some(en=>can(en==='iph'?['iphEditar','iphAsignar']:ENT[en].act).ok),p0=can(m.a);
-  const grupos=ents.map(en=>{const L=c.hijos.filter(h=>h.ent===en&&(en!=='objeto'&&en!=='vehiculo'?true:true));if(!L.length)return '';const E=ENT[en];
-    return `<div class="eg">${E.n}${E.pv?pv(E.pv):''}${E.restr?'<span class="b anulado">acceso restringido</span>':''}</div>${L.map(h=>filaHijo(e,k,h)).join('')}`}).join('');
-  return `<div class="pz ${{pendiente:'pen',registrado:'reg',sin_novedad:'sin'}[s]}"><div class="pzh"><b>${m.n}</b>${m.q?pv(m.q):''}${stB(s)}<span class="small mut">${c.hijos.length} registro${c.hijos.length===1?'':'s'}</span><span style="flex:1"></span>
-   ${any?`<details class="menu"><summary class="btnlike">${ic('plus')} Registrar ${ic('chev')}</summary><div class="mlist">${menu}</div></details>`:`<span class="why">${esc(p0.why)}</span>`}
-   ${c.hijos.length?'':Bm('Sin novedad','sn',m.a,`data-k="${k}"`)+Bm('Pendiente','pend',m.a,`data-k="${k}"`)}</div>${grupos}</div>`}
+  const actDe=en=>en==='iph'?['iphEditar','iphAsignar']:ENT[en].act;
+  const itemsHtml=ents.map(en=>{const E=ENT[en],p=can(actDe(en));return UM.menuItem({label:E.n+(E.pv?pv(E.pv):''),act:'add',attrs:`data-k="${k}" data-ent="${en}"`,allowed:p.ok,why:p.why||''})}).join('');
+  const any=ents.some(en=>can(actDe(en)).ok),p0=can(m.a);
+  const grupos=ents.map(en=>{const L=c.hijos.filter(h=>h.ent===en);if(!L.length)return '';const E=ENT[en];
+    return UO.recordGroup({titulo:E.n,tagsHtml:(E.pv?pv(E.pv):'')+(E.restr?UA.badge('anulado','acceso restringido'):''),filasHtml:L.map(h=>filaHijo(e,k,h)).join('')})}).join('');
+  const acciones=(any?UM.menu({etiqueta:'Registrar',itemsHtml}):UA.hint(p0.why))+(c.hijos.length?'':Bm('Sin novedad','sn',m.a,`data-k="${k}"`)+Bm('Pendiente','pend',m.a,`data-k="${k}"`));
+  return UO.pieceBlock({clase:{pendiente:'pen',registrado:'reg',sin_novedad:'sin'}[s],titulo:m.n,tagsHtml:m.q?pv(m.q):'',estadoHtml:stB(s),conteo:`${c.hijos.length} registro${c.hijos.length===1?'':'s'}`,accionesHtml:acciones,cuerpoHtml:grupos})}
 
 function vDetalle(){
   const e=ev();if(!e)return '<p>Evento no encontrado.</p>';
@@ -383,28 +366,27 @@ function vDetalle(){
     ${B('Completar / editar origen','origen',['crearA','levantarB'])}</div>
    <div class="card"><h3>Resumen automático <span class="small mut">(se calcula solo, no se captura)</span></h3><div class="ind">
     ${indicadores(e).map(([k,v])=>`<div>${v?`<span class="ok">${ic('check')}</span>`:`<span class="mut">${ic('x')}</span>`} ${IND[k]}</div>`).join('')}<div><b>Piezas que faltan: ${pendientes(e)}</b></div></div></div></div>
-  <div class="card" style="margin-top:14px"><h3>¿Se puede cerrar? ${listo?`<span class="b registrado">${ic('check')} Sí</span>`:'<span class="b pendiente">Aún no</span>'}</h3><ul class="chk">${chk.map(x=>`<li class="${x.ok?'ok':'no'}">${ic(x.ok?'check':'x')}<span>${x.t}${x.q?pv(x.q):''}</span></li>`).join('')}</ul>
+  <div class="card" style="margin-top:var(--space-4)"><h3>¿Se puede cerrar? ${listo?`${UA.badge('registrado',ic('check')+' Sí')}`:UA.badge('pendiente','Aún no')}</h3><ul class="chk">${chk.map(x=>`<li class="${x.ok?'ok':'no'}">${ic(x.ok?'check':'x')}<span>${x.t}${x.q?pv(x.q):''}</span></li>`).join('')}</ul>
    <p class="small mut">Cierra solo Plataforma; reabre solo Jurídico. ${listo?'':'Cerrar queda bloqueado hasta cumplir todas.'}</p></div>`,
    piezas:`<p class="small mut">Cada área marca si hubo o no. Ausencia no es inexistencia: «Sin novedad» no exige registros; «Registrado» exige al menos uno. Las entidades con etiqueta ${pv('Q-xx')} se muestran para validarlas con el área; no son definitivas.</p>${Object.keys(COMP).map(k=>pieza(e,k)).join('')}`,
-   agentes:`<div class="card"><div class="row"><h3 style="margin:0">Agentes (snapshot desde MongoDB simulado)</h3><span style="flex:1"></span>
+   agentes:`<div class="card"><div class="row"><h3 style="margin:0">Agentes (snapshot desde MongoDB simulado)</h3><span class="grow"></span>
    ${ag?B('+ Agregar agente','agente','agentes'):''}<button class="sec" data-act="mongo" title="Demuestra que el snapshot no cambia">Probar: cambia el dato en Mongo</button></div>
-   ${ag?`<div class="sc"><table><tr><th>Empleado</th><th>Nombre</th><th>Roles</th><th>Snapshot</th><th></th></tr>${ag}</table></div>`:`<div class="vacio">${ic('inbox')}<p>Este evento todavía no tiene agentes.</p>${B('Agregar el primero','agente','agentes')}</div>`}
+   ${ag?`<div class="sc"><table><tr><th>Empleado</th><th>Nombre</th><th>Roles</th><th>Snapshot</th><th></th></tr>${ag}</table></div>`:UM.emptyState({texto:'Este evento todavía no tiene agentes.',accionHtml:B('Agregar el primero','agente','agentes')})}
    <p class="small mut">Un agente puede tener varios roles. Agentes de otra institución ${pv('Q-20')}</p></div>
-  <div class="card"><div class="row"><h3 style="margin:0">Narrativa del evento</h3><span style="flex:1"></span>${B('Editar narrativa','narra',['iphEditar','parte'])}</div>
+  <div class="card"><div class="row"><h3 style="margin:0">Narrativa del evento</h3><span class="grow"></span>${B('Editar narrativa','narra',['iphEditar','parte'])}</div>
    <p>${e.narrativa?esc(e.narrativa):'<span class="mut">Sin narrativa todavía.</span>'}</p><p class="small mut">La narrativa vive en el evento; cada IPH tiene la suya solo si el evento tiene más de un IPH.</p></div>`,
    historial:`<div class="card"><h3>Historial del evento</h3>${linea(S.audit.filter(a=>a.evento===e.ref).slice(-15).reverse())}</div>`}[tab];
   const tabs=[['resumen','Resumen'],['piezas','Piezas'+(pendientes(e)?` (${pendientes(e)} faltan)`:'')],['agentes','Agentes y narrativa'],['historial','Historial']];
   return `<p><button class="sec" data-act="nav" data-k="eventos">${ic('back')} Volver a eventos</button></p>
-  ${d?`<div class="alert">Posible duplicado de <b>${d.ref}</b> (mismo folio CERI o misma colonia a ≤ ${UMBRAL_MIN} min, umbral de ejemplo ${pv('Q-05')}). Plataforma puede fusionarlos en <i>Conciliación</i>.</div>`:''}
-  ${e.canonico?`<div class="alert err">Anulado por fusión. Evento canónico: ${S.eventos.find(x=>x.id===e.canonico)?.ref}</div>`:''}
-  <div class="guia"><h3>${ic('go')} Tu siguiente paso como ${DEPTS[dept].n}</h3>${(()=>{const L=pasos(e);return L.length?'<ol>'+L.map(x=>'<li>'+x+'</li>').join('')+'</ol>':'<p style="margin:0">No tienes pendientes en este evento. Lo demás lo aportan otras áreas.</p>'})()}
-   <div class="small" style="margin-top:8px">Avance para cerrar: <b>${nOk} de ${chk.length}</b> requisitos</div><div class="bar" role="progressbar" aria-valuenow="${nOk}" aria-valuemin="0" aria-valuemax="${chk.length}"><i style="width:${Math.round(100*nOk/chk.length)}%"></i></div></div>
-  <div class="card"><div class="row"><h2 style="margin:0">${e.ref}</h2>${stB(e.estado)}<details class="tec"><summary>Datos técnicos</summary><span class="small mut">versión ${e.version} · ruta ${e.ruta} · ${e.id}</span></details><span style="flex:1"></span>
+  ${d?UM.alert({html:`Posible duplicado de <b>${d.ref}</b> (mismo folio CERI o misma colonia a ≤ ${UMBRAL_MIN} min, umbral de ejemplo ${pv('Q-05')}). Plataforma puede fusionarlos en <i>Conciliación</i>.`}):''}
+  ${e.canonico?UM.alert({tipo:'err',html:`Anulado por fusión. Evento canónico: ${S.eventos.find(x=>x.id===e.canonico)?.ref}`}):''}
+  ${UO.guide({titulo:`Tu siguiente paso como ${DEPTS[dept].n}`,pasosHtml:pasos(e).map(x=>'<li>'+x+'</li>').join(''),sinPasos:'No tienes pendientes en este evento. Lo demás lo aportan otras áreas.',hechos:nOk,total:chk.length})}
+  <div class="card"><div class="row"><h2 style="margin:0">${e.ref}</h2>${stB(e.estado)}<details class="tec"><summary>Datos técnicos</summary><span class="small mut">versión ${e.version} · ruta ${e.ruta} · ${e.id}</span></details><span class="grow"></span>
    <button class="sec" data-act="ficha" title="Todos los datos del evento en una sola hoja">Ficha / imprimir</button>
    <button class="sec" data-act="otra" title="Demuestra qué pasa si otra área guarda al mismo tiempo">Probar: otra área edita a la vez</button>
    ${B('Cerrar evento','cerrar','cerrar')}${B('Reabrir','reabrir','reabrir','','sec')}${B('Anular','anular','anular','','bad')}</div>
    ${cerr||anul?`<p class="small">Edición bloqueada. ${pv('Q-06')}</p>`:''}</div>
-  <div class="tabs" role="tablist" aria-label="Secciones del evento">${tabs.map(([k,l])=>`<button role="tab" aria-selected="${tab===k}" data-act="tab" data-k="${k}">${l}</button>`).join('')}</div>
+  ${UM.tabs({items:tabs,actual:tab,act:'tab',etiqueta:'Secciones del evento'})}
   ${T}`}
 
 /* ===== Lector del reporte macro de CERI (xlsx, xls o csv) ===== */
@@ -490,7 +472,7 @@ function vGuia(){
 function vPre(){
   return `<div class="card"><h2>Preregistros CERI <span class="small mut">(sin teléfono ni relator; solo procedentes con SPM)</span></h2>
   <p class="small">Caduca si ningún área le agrega una consecuencia: <b>${CADUCA_DIAS} días</b> <span class="b pendiente">VALOR DE EJEMPLO</span>${pv('Q-29')}. Las coordenadas UTM se convierten a latitud/longitud de forma aproximada; en producción lo hace PostGIS. Si la hora de arribo es igual a la de inicio, se importa vacía.</p>
-  <div class="card noprint" style="background:var(--pri2)"><h3>Importar el reporte de CERI</h3><p class="small">Sube el Excel (.xlsx o .xls) o el CSV del reporte macro. Se aplican las reglas de <code>05-ceri</code>: solo procedentes con SPM, sin folios repetidos, sin teléfono ni relator.</p><div class="row"><label class="btnlike" style="cursor:pointer">${ic('plus')} Elegir archivo<input type="file" accept=".xlsx,.xls,.csv" data-f="ceri" hidden></label><button class="sec" data-act="muestraCeri">Probar con la muestra sintética</button></div></div>
+  <div class="card soft noprint"><h3>Importar el reporte de CERI</h3><p class="small">Sube el Excel (.xlsx o .xls) o el CSV del reporte macro. Se aplican las reglas de <code>05-ceri</code>: solo procedentes con SPM, sin folios repetidos, sin teléfono ni relator.</p><div class="row"><label class="btnlike" style="cursor:pointer">${ic('plus')} Elegir archivo<input type="file" accept=".xlsx,.xls,.csv" data-f="ceri" hidden></label><button class="sec" data-act="muestraCeri">Probar con la muestra sintética</button></div></div>
   <div class="sc"><table class="rs"><tr><th>Folio</th><th>Fecha</th><th>Incidente</th><th>Colonia</th><th>Distrito/Sector</th><th>Avisos</th><th>Vence</th><th></th></tr>
   ${S.pre.map(p=>`<tr><td data-l="Folio">${p.folio}</td><td data-l="Fecha">${p.fecha.replace('T',' ')}</td><td data-l="Incidente">${p.incidente}</td><td data-l="Colonia">${esc(p.colonia||p.coloniaOrig||'—')}</td><td data-l="Distrito/Sector">${esc(p.distrito||'—')} / ${esc(p.sector||'—')}</td><td data-l="Avisos">${(p.flags||[]).map(f=>`<span class="b pendiente" title="${esc(f)}">${esc(f.replace(/_/g,' '))}</span>`).join(' ')||'—'}</td><td data-l="Vence">${p.evento?'—':esc(p.caduca||'—')}</td>
    <td>${p.evento?`<span class="b registrado">promovido → ${S.eventos.find(e=>e.id===p.evento).ref}</span>`:B('Promover a evento','promover','crearA',`data-k="${p.folio}"`)}</td></tr>`).join('')}</table></div></div>`}
@@ -507,7 +489,7 @@ const SIM={S:'Sí',P:'Propuesta','?':'Por validar','-':'·'};
 function vPerm(){
   return `<div class="card"><h2>Matriz de permisos <span class="small mut">(PROPUESTA)</span></h2><p class="small mut">Sí = lo dice la spec · Propuesta = propuesta de trabajo · Por validar = falta decidirlo · punto = no le corresponde.</p><div class="sc"><table>
   <tr><th>Acción</th>${DK.map(k=>`<th>${DEPTS[k].n}</th>`).join('')}</tr>
-  ${Object.values(PERM).map(p=>`<tr><td>${p.l} ${pv(p.q)}</td>${p.r.map((v,i)=>`<td style="${DK[i]===dept?'background:var(--pri2)':''}">${SIM[v]}</td>`).join('')}</tr>`).join('')}</table></div></div>`}
+  ${Object.values(PERM).map(p=>`<tr><td>${p.l} ${pv(p.q)}</td>${p.r.map((v,i)=>`<td class="${DK[i]===dept?'activa':''}">${SIM[v]}</td>`).join('')}</tr>`).join('')}</table></div></div>`}
 
 const hojaKey=d=>'pimsy_hoja_'+d;
 function hojaLoad(d){try{return JSON.parse(localStorage.getItem(hojaKey(d))||'{}')}catch(x){return {}}}
@@ -527,7 +509,7 @@ function vHoja(){
    ${QDEPT[dept].map(q=>`<label><b>${q}</b> ${esc(Q[q])}</label><textarea data-h="${q}">${esc(h[q]||'')}</textarea>`).join('')}</div>`}
 function auditTabla(a){return a.length?`<div class="sc"><table><tr><th>#</th><th>Cuándo</th><th>Evento</th><th>Op.</th><th>Tabla</th><th>Detalle</th><th>Área</th></tr>${a.map(x=>`<tr><td>${x.n}</td><td>${x.en.slice(11,19)}</td><td>${x.evento}</td><td>${x.op}</td><td>${x.tabla}</td><td>${esc(x.det)}</td><td>${DEPTS[x.area].n}</td></tr>`).join('')}</table></div>`:'<p class="mut">Sin movimientos.</p>'}
 function vAud(){return `<div class="card noprint"><h2>Respaldo de datos</h2><p class="small mut">Guarda todos los eventos capturados en un archivo para llevarlos a otra computadora o compartirlos con tu equipo.</p>
-   <div class="row"><button data-act="expDatos">Exportar datos (JSON)</button><label class="btnlike sec" style="background:var(--card);color:var(--tx);border:1px solid var(--bd);cursor:pointer">Importar datos<input type="file" accept="application/json" data-f="imp" hidden></label></div></div>
+   <div class="row"><button data-act="expDatos">Exportar datos (JSON)</button><label class="btnlike sec">Importar datos<input type="file" accept="application/json" data-f="imp" hidden></label></div></div>
   <div class="card"><h2>Auditoría <span class="small mut">(solo se agrega; sin UPDATE ni DELETE)</span></h2>${auditTabla(S.audit.slice().reverse())}</div>`}
 
 /* ===== Acciones de dominio ===== */
@@ -591,6 +573,7 @@ function desdePre(p){
 
 /* ===== Clics y teclado ===== */
 document.addEventListener('click',x=>{
+  const mz=x.target.closest('[data-matiz]');if(mz){THEME.set({hue:+mz.dataset.matiz});return}
   const t=x.target.closest('[data-act]');if(!t||t.disabled)return;
   const m=t.closest('details.menu');if(m)m.open=false;
   const a=t.dataset.act,k=t.dataset.k,id=t.dataset.id,e=cur&&ev();
@@ -642,11 +625,14 @@ document.addEventListener('click',x=>{
    case 'print':return print();
    case 'muestraCeri':return fetch('muestra_ceri.csv').then(r=>{if(!r.ok)throw new Error();return r.arrayBuffer()}).then(b=>leerArchivoCeri(b,'muestra_ceri.csv (sintética)')).catch(()=>toast('Para usar la muestra abre la maqueta desde un servidor (GitHub Pages o un servidor local).',1));
    case 'expDatos':{const l=document.createElement('a');l.href=URL.createObjectURL(new Blob([JSON.stringify({version:2,exportado:now(),S},null,2)],{type:'application/json'}));l.download='pimsy_maqueta_datos.json';l.click();return toast('Datos exportados.')}
+   case 'diseno':return abrirDiseno();
+   case 'knobsReset':THEME.reset();return abrirDiseno();
    case 'tour':return tour(0);
    case 'tourSig':return tour(+k);
    case 'tourFin':return tourFin();
   }});
 document.addEventListener('input',x=>{
+  const kb=x.target.dataset.knob;if(kb){const v=THEME.set({[kb]:+x.target.value}),o=document.getElementById('o_'+kb);if(o)o.textContent=v[kb]+(THEME.knobs.find(k=>k.id===kb).unidad||'');return}
   const f=x.target.dataset.f;if(f){FL[f]=x.target.type==='checkbox'?x.target.checked:x.target.value;$('#rows').innerHTML=filas();return}
   const k=x.target.dataset.h;if(!k)return;const h=hojaLoad(dept);h[k]=x.target.value;hojaSave(dept,h)});
 document.addEventListener('change',x=>{const f=x.target.dataset.f;
@@ -662,10 +648,8 @@ $('#dept').onchange=x=>{dept=x.target.value;try{localStorage.setItem('pimsy_dept
 
 /* ===== Primera visita: elegir quién eres ===== */
 function elegirRol(primera){
-  const d=$('#dlg');d.className='big';
-  d.innerHTML=`<form method="dialog"><div class="dh"><h3 id="dlgt">¿Quién eres?</h3></div><p class="small mut" style="margin:8px 20px">Elige tu departamento. Verás solo lo que te toca; después puedes cambiarlo arriba cuando quieras.</p>
-   <div class="roles">${DK.map(k=>`<button type="button" class="rol" style="--rc:${DCOL[k]}" data-rol="${k}"><b>${DEPTS[k].n}</b><span>${ROL[k]}</span></button>`).join('')}</div></form>`;
-  d.oncancel=null;
+  const d=$('#dlg');d.className='big';d.oncancel=null;
+  d.innerHTML=UO.dialogShell({titulo:'¿Quién eres?',formAttrs:'method="dialog"',cuerpoHtml:`<p class="small mut" style="margin:var(--space-3) var(--space-5)">Elige tu departamento. Verás solo lo que te toca; después puedes cambiarlo arriba cuando quieras.</p>${UO.roleGrid(DK.map(k=>({clave:k,titulo:DEPTS[k].n,texto:ROL[k],color:DCOL[k]})))}`});
   d.querySelectorAll('[data-rol]').forEach(b=>b.onclick=()=>{dept=b.dataset.rol;try{localStorage.setItem('pimsy_dept',dept)}catch(x){}d.close();render();if(primera){try{if(localStorage.getItem('pimsy_tour')!=='1')setTimeout(()=>tour(0),300)}catch(x){}}});
   d.showModal()}
 /* ===== Recorrido guiado y tema ===== */
@@ -681,13 +665,13 @@ function tour(i){
   const [sel,t,txt]=TOUR[i],el=$(sel);if(!el)return tour(i+1);
   el.classList.add('tour-hl');el.scrollIntoView({block:'center',behavior:'smooth'});
   const b=$('#tour');b.hidden=false;
-  b.innerHTML=`<h4>${t}</h4><p>${txt}</p><div class="row end"><span class="small mut" style="flex:1">${i+1} de ${TOUR.length}</span><button class="sec" data-act="tourFin">Omitir</button><button data-act="tourSig" data-k="${i+1}">${i+1===TOUR.length?'Terminar':'Siguiente'}</button></div>`;
+  b.innerHTML=UO.tourStep({titulo:t,texto:txt,pos:i+1,total:TOUR.length,siguiente:i+1===TOUR.length?'Terminar':'Siguiente'});
   setTimeout(()=>{const r=el.getBoundingClientRect(),w=Math.min(320,innerWidth-24);
     b.style.left=Math.max(12,Math.min(r.left,innerWidth-w-12))+'px';
     const abajo=r.bottom+12+b.offsetHeight<innerHeight;b.style.top=(abajo?r.bottom+12:Math.max(12,r.top-b.offsetHeight-12))+'px'},250)}
-$('#help').innerHTML=ic('help');$('#help').onclick=()=>tour(0);
-$('#theme').onclick=()=>{let m='auto';try{m=localStorage.getItem('pimsy_tema')||'auto'}catch(x){}theme(THEMES[(THEMES.indexOf(m)+1)%3])};
-{let m='auto';try{m=localStorage.getItem('pimsy_tema')||'auto'}catch(x){}theme(m)}
+$('#design').innerHTML=ic('palette');$('#help').innerHTML=ic('help');$('#help').onclick=()=>tour(0);
+$('#theme').onclick=()=>theme(SCHEMES[(SCHEMES.indexOf(THEME.scheme())+1)%3]);
+theme(THEME.scheme());
 
 try{const g=JSON.parse(localStorage.getItem('pimsy_estado2')||'null');if(g&&g.S){S=g.S;Object.assign(AGENTES_MONGO,g.AGENTES_MONGO)}else seed()}catch(x){seed()}
 try{const dd=localStorage.getItem('pimsy_dept');if(dd&&DEPTS[dd])dept=dd}catch(x){}

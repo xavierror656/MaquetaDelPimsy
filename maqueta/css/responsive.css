@@ -1,0 +1,43 @@
+/* RESPONSIVO, ACCESIBILIDAD E IMPRESIÓN — los umbrales están documentados en theme.css. */
+
+@media (max-width:720px){
+  main{padding:var(--space-3);padding-bottom:5.25rem}
+  header{padding:var(--space-2) var(--space-3);gap:var(--space-2)}
+  header .lt{display:none}
+  header h1{flex:1;font-size:var(--text-base)}
+  header label{order:3}
+  header .hr{margin-left:0}
+  .legend{display:none}
+  nav{position:fixed;left:0;right:0;bottom:0;z-index:var(--z-nav);flex-wrap:nowrap;overflow-x:auto;padding:var(--space-2);background:var(--color-surface);border-top:var(--border-w) solid var(--color-border)}
+  nav button{flex:none;height:var(--control-h-touch);color:var(--color-text-muted)}
+  nav button:hover:not(:disabled){background:var(--color-brand-soft);color:var(--color-text)}
+  nav button.on{background:var(--color-brand-soft);color:var(--color-brand)}
+  #toasts{left:var(--space-2);right:var(--space-2);bottom:4.5rem;max-width:none}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .rev{grid-template-columns:1fr}
+  table.rs,table.rs tbody,table.rs tr,table.rs td{display:block;width:100%}
+  table.rs tr:first-child{display:none}
+  table.rs tr{margin-bottom:var(--space-3);padding:var(--space-2);border:var(--border-w) solid var(--color-border);border-radius:var(--radius-lg)}
+  table.rs td{padding:var(--space-1) var(--space-2);border:0}
+  table.rs td::before{content:attr(data-l);display:block;font-size:var(--text-xs);color:var(--color-text-muted)}
+  table.rs td.hm{display:none}
+  dialog.big{width:100vw;max-width:100vw;height:100vh;max-height:100vh;margin:0;border-radius:0}
+  dialog.big form{height:100vh;max-height:100vh}
+  .fg{grid-template-columns:1fr}
+  .mlist{position:fixed;left:var(--space-2);right:var(--space-2);bottom:4.5rem;min-width:0}
+}
+
+@media (pointer:coarse){
+  button,input,select{min-height:var(--control-h-touch)}
+}
+
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
+}
+
+@media print{
+  header,nav,button,#toasts,#tour,.noprint,dialog{display:none!important}
+  body{background:none;color:inherit}
+  .card{padding:0;border:0}
+  .card,.pz{break-inside:avoid}
+}

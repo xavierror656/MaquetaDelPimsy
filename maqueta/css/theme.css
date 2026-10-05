@@ -1,0 +1,208 @@
+/* =============================================================================
+   THEME — el ÚNICO lugar donde viven los valores de diseño (colores, tamaños,
+   espacios, radios, sombras, movimiento, capas). Ver DESIGN.md.
+   Regla: ningún otro .css ni .js puede escribir un color, un tamaño de letra,
+   un z-index ni una sombra literal; solo referencia estos tokens.
+
+   Capas de tokens:  1) PERILLAS (las que mueve el panel «Diseño»)
+                     2) PRIMITIVOS (valores crudos)
+                     3) SEMÁNTICOS (lo que usan los componentes)
+                     4) TEMA OSCURO (solo redefine semánticos)
+
+   Breakpoints (las media queries no aceptan variables; se documentan aquí):
+     --bp-compacto: 720px   ·  --bp-impresion: print  ·  --bp-tactil: pointer:coarse
+   ============================================================================= */
+
+:root{
+  /* ---------- 1) PERILLAS (valor por defecto; el panel las sobrescribe) ---------- */
+  --brand-h:221;            /* matiz de la marca, 0–360 */
+  --radius-scale:1;         /* 0.25 (recto) – 2 (muy redondo) */
+  --density:1;              /* 0.85 (compacto) – 1.25 (espacioso) */
+  --font-scale:1;           /* 0.9 – 1.25 */
+
+  /* ---------- 2) PRIMITIVOS ---------- */
+  --brand-s:83%;
+  --brand-l:48%;
+  --slate-0:hsl(0 0% 100%);
+  --slate-50:hsl(222 60% 97%);
+  --slate-100:hsl(222 60% 94%);
+  --slate-200:hsl(222 40% 88%);
+  --slate-500:hsl(222 15% 40%);
+  --slate-900:hsl(222 47% 8%);
+  --slate-950:hsl(222 55% 6%);
+  --night-800:hsl(222 38% 14%);
+  --night-700:hsl(222 33% 22%);
+  --night-300:hsl(222 30% 72%);
+  --night-100:hsl(222 100% 96%);
+  --green-700:hsl(161 94% 24%);
+  --green-400:hsl(158 64% 52%);
+  --amber-700:hsl(31 92% 37%);
+  --amber-500:hsl(38 92% 50%);
+  --amber-300:hsl(43 96% 56%);
+  --rose-700:hsl(343 87% 40%);
+  --rose-400:hsl(351 95% 71%);
+  --violet-600:hsl(262 83% 58%);
+  --violet-300:hsl(255 92% 76%);
+  --sky-500:hsl(199 89% 48%);
+  --sky-800:hsl(201 90% 27%);
+  --orange-600:hsl(21 90% 48%);
+  --pink-600:hsl(330 81% 53%);
+  --gray-500:hsl(215 16% 47%);
+
+  /* ---------- 3) SEMÁNTICOS: color ---------- */
+  --color-brand:hsl(var(--brand-h) var(--brand-s) var(--brand-l));
+  --color-brand-hover:hsl(var(--brand-h) var(--brand-s) calc(var(--brand-l) - 9%));
+  --color-brand-contrast:var(--slate-0);
+  --color-brand-soft:hsl(var(--brand-h) 90% 95%);
+  --color-brand-deep:hsl(var(--brand-h) 70% 22%);
+  --color-brand-accent:hsl(calc(var(--brand-h) - 28) 92% 50%);
+
+  --color-bg:var(--slate-50);
+  --color-surface:var(--slate-0);
+  --color-text:var(--slate-900);
+  --color-text-muted:var(--slate-500);
+  --color-border:var(--slate-200);
+  --color-scrim:hsl(222 47% 8% / .5);
+
+  --color-success:var(--green-700);
+  --color-success-soft:hsl(150 70% 95%);
+  --color-success-border:hsl(152 60% 76%);
+  --color-warning:var(--amber-700);
+  --color-warning-soft:hsl(43 100% 93%);
+  --color-warning-border:hsl(43 85% 72%);
+  --color-warning-edge:var(--amber-500);
+  --color-danger:var(--rose-700);
+  --color-danger-soft:hsl(350 100% 96%);
+  --color-danger-border:hsl(345 85% 84%);
+  --color-validate:var(--violet-600);          /* etiquetas POR VALIDAR */
+  --color-validate-soft:hsl(255 100% 97%);
+  --color-info:var(--sky-800);
+  --color-info-soft:hsl(204 94% 94%);
+  --color-info-border:hsl(202 85% 82%);
+  --color-open:hsl(263 70% 38%);
+  --color-open-soft:hsl(255 100% 96%);
+  --color-open-border:hsl(255 80% 88%);
+  --color-reopen:hsl(18 78% 35%);
+  --color-reopen-soft:hsl(33 100% 92%);
+  --color-reopen-border:hsl(30 90% 82%);
+  --color-on-brand-bar:hsl(var(--brand-h) 100% 92%);   /* texto claro sobre la barra de marca */
+  --color-brand-bar-from:hsl(var(--brand-h) 70% 20%);
+  --color-brand-bar-mid:hsl(var(--brand-h) var(--brand-s) 40%);
+  --color-brand-bar-to:var(--sky-500);
+  --color-field-on-bar:var(--slate-0);
+  --color-field-on-bar-text:var(--slate-950);
+  --color-glass:hsl(0 0% 100% / .14);
+  --color-glass-line:hsl(0 0% 100% / .35);
+  --color-glass-hover:hsl(0 0% 100% / .18);
+
+  /* categóricos (tarjetas de resumen, pasos) */
+  --cat-1:hsl(221 83% 53%);
+  --cat-2:hsl(32 95% 44%);
+  --cat-3:hsl(161 94% 30%);
+  --cat-4:var(--violet-600);
+  --cat-5:hsl(347 90% 50%);
+
+  /* departamentos (color de acento por área) */
+  --dept-ceri:var(--sky-500);
+  --dept-tel:hsl(38 92% 50%);
+  --dept-policia:hsl(221 83% 53%);
+  --dept-coord:var(--violet-600);
+  --dept-barandilla:var(--orange-600);
+  --dept-juridico:hsl(161 94% 30%);
+  --dept-plataforma:var(--pink-600);
+  --dept-analista:var(--gray-500);
+  --dc:var(--dept-policia);                    /* acento del departamento activo (lo fija la app) */
+
+  /* ---------- 3) SEMÁNTICOS: tipografía ---------- */
+  --font-sans:Inter,ui-sans-serif,system-ui,"Segoe UI",Roboto,sans-serif;
+  --font-base:calc(1rem * var(--font-scale));       /* 16px × escala */
+  --text-xs:.6875rem;   /* 11px */
+  --text-sm:.75rem;     /* 12px */
+  --text-md:.8125rem;   /* 13px */
+  --text-base:.9375rem; /* 15px */
+  --text-lg:1.0625rem;  /* 17px */
+  --text-xl:1.25rem;    /* 20px */
+  --text-display:1.625rem; /* 26px */
+  --weight-regular:400;
+  --weight-medium:500;
+  --weight-semibold:600;
+  --weight-bold:700;
+  --leading-normal:1.5;
+  --leading-tight:1.1;
+  --tracking-tight:-.02em;
+  --tracking-caps:.04em;
+
+  /* ---------- 3) SEMÁNTICOS: espacio (base 4px × densidad) ---------- */
+  --space-1:calc(.25rem * var(--density));
+  --space-2:calc(.5rem * var(--density));
+  --space-3:calc(.75rem * var(--density));
+  --space-4:calc(1rem * var(--density));
+  --space-5:calc(1.25rem * var(--density));
+  --space-6:calc(1.75rem * var(--density));
+  --space-7:calc(2.5rem * var(--density));
+
+  /* ---------- 3) SEMÁNTICOS: forma, sombra, movimiento ---------- */
+  --radius-sm:calc(.375rem * var(--radius-scale));
+  --radius-md:calc(.5rem * var(--radius-scale));
+  --radius-lg:calc(.75rem * var(--radius-scale));
+  --radius-pill:62.4375rem;
+  --border-w:1px;
+  --border-w-strong:3px;
+  --accent-w:6px;                   /* filo de color a la izquierda de tarjetas */
+  --shadow-sm:0 1px 2px hsl(222 47% 8% / .06);
+  --shadow-md:0 10px 30px hsl(222 47% 8% / .2);
+  --shadow-lg:0 10px 30px hsl(222 47% 8% / .3);
+  --motion-fast:.15s;
+  --motion-base:.3s;
+  --focus-ring:2px;
+
+  /* ---------- 3) SEMÁNTICOS: layout y capas ---------- */
+  --content-max:72rem;
+  --control-h:2.25rem;              /* 36px */
+  --control-h-sm:1.875rem;          /* 30px */
+  --control-h-lg:2.625rem;          /* 42px */
+  --control-h-touch:2.75rem;        /* 44px */
+  --dialog-w:54rem;
+  --z-sticky:5;
+  --z-nav:6;
+  --z-menu:10;
+  --z-toast:30;
+  --z-skip:50;
+  --z-tour:40;
+  --z-tour-target:39;
+}
+
+/* ---------- 4) TEMA OSCURO: solo se redefinen los semánticos ---------- */
+html[data-theme=dark]{
+  --brand-l:68%;
+  --color-brand-hover:hsl(var(--brand-h) var(--brand-s) calc(var(--brand-l) + 9%));
+  --color-brand-contrast:hsl(222 55% 8%);
+  --color-brand-soft:hsl(var(--brand-h) 45% 21%);
+  --color-brand-deep:hsl(var(--brand-h) 60% 78%);
+  --color-bg:var(--slate-950);
+  --color-surface:var(--night-800);
+  --color-text:var(--night-100);
+  --color-text-muted:var(--night-300);
+  --color-border:var(--night-700);
+  --color-success:var(--green-400);
+  --color-success-soft:hsl(158 80% 9%);
+  --color-success-border:hsl(160 70% 22%);
+  --color-warning:var(--amber-300);
+  --color-warning-soft:hsl(38 75% 11%);
+  --color-warning-border:hsl(35 80% 26%);
+  --color-danger:var(--rose-400);
+  --color-danger-soft:hsl(345 60% 12%);
+  --color-danger-border:hsl(345 60% 29%);
+  --color-validate:var(--violet-300);
+  --color-validate-soft:hsl(255 60% 20%);
+  --color-info:hsl(199 95% 74%);
+  --color-info-soft:hsl(203 88% 11%);
+  --color-info-border:hsl(202 88% 22%);
+  --color-open:var(--violet-300);
+  --color-open-soft:hsl(260 80% 18%);
+  --color-open-border:hsl(258 60% 33%);
+  --color-reopen:hsl(27 95% 72%);
+  --color-reopen-soft:hsl(15 70% 14%);
+  --color-reopen-border:hsl(14 65% 28%);
+  --shadow-sm:none;
+}

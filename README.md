@@ -37,4 +37,4 @@ El export original de CERI (trae teléfonos y nombres), credenciales, datos pers
 Está en `maqueta/` (HTML + JS estáticos, sin build). Ábrela con `maqueta/index.html` o publícala en GitHub Pages con
 `.github/workflows/pages.yml` (Settings > Pages > Source = GitHub Actions). Todos los datos son sintéticos.
 Detalle de lo implementado y de los supuestos: `REPORTE_FINAL.md` y `02-spec-driven/decisiones_asumidas.md`.
-
+Las leyes de diseño (atómico estricto, tema centralizado) están en `maqueta/DESIGN.md` y se verifican con `node maqueta/tools/lint-design.mjs`.

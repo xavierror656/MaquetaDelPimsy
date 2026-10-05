@@ -1,0 +1,97 @@
+/* ORGANISMOS — secciones completas de la interfaz hechas de moléculas y átomos. */
+
+/* Encabezado + navegación */
+.o-header,header{
+  position:sticky;top:0;z-index:var(--z-sticky);display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-3);
+  padding:var(--space-3) var(--space-4);color:var(--color-field-on-bar);
+  background:linear-gradient(100deg,var(--color-brand-bar-from) 0,var(--color-brand-bar-mid) 55%,var(--color-brand-bar-to) 100%);
+  border-bottom:5px solid var(--dc);
+}
+header h1{margin:0;font-size:var(--text-lg);font-weight:var(--weight-bold);letter-spacing:var(--tracking-tight)}
+header label{font-size:var(--text-md);color:var(--color-field-on-bar)}
+header .lt{color:var(--color-on-brand-bar)}
+header select{font-weight:var(--weight-semibold);background:var(--color-field-on-bar);color:var(--color-field-on-bar-text);border:0;border-left:var(--accent-w) solid var(--dc)}
+header .hr{display:flex;gap:var(--space-2);margin-left:auto}
+header button.ghost{color:var(--color-field-on-bar);background:var(--color-glass);border:var(--border-w) solid var(--color-glass-line)}
+header button.ghost:hover:not(:disabled){background:var(--color-glass-hover);border-color:transparent}
+nav{display:flex;flex-wrap:wrap;gap:2px;width:100%}
+nav button{height:2.125rem;padding:0 var(--space-3);border:0;background:transparent;color:var(--color-on-brand-bar);box-shadow:none;font-weight:var(--weight-medium)}
+nav button:hover:not(:disabled){background:var(--color-glass-hover);color:var(--color-field-on-bar)}
+nav button.on{background:var(--color-field-on-bar);color:var(--color-brand-deep);font-weight:var(--weight-bold)}
+
+/* Guía «Tu siguiente paso» */
+.guia{margin-bottom:var(--space-4);padding:var(--space-4);background:linear-gradient(100deg,var(--color-brand-soft),var(--color-surface) 70%);border:var(--border-w) solid var(--color-border);border-left:var(--accent-w) solid var(--dc);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm)}
+.guia h3{display:flex;gap:var(--space-2);align-items:center;margin:0 0 var(--space-2);font-size:var(--text-lg);color:var(--color-brand)}
+.guia ol{margin:0;padding-left:var(--space-5)}
+.guia li{margin:var(--space-1) 0}
+.pasos{display:grid;grid-template-columns:repeat(auto-fit,minmax(12.5rem,1fr));gap:var(--space-3);margin-top:var(--space-2)}
+.pasos .paso:nth-child(1){--pc:var(--cat-1)}.pasos .paso:nth-child(2){--pc:var(--cat-4)}.pasos .paso:nth-child(3){--pc:var(--cat-3)}.pasos .paso:nth-child(4){--pc:var(--cat-2)}
+
+/* Rejillas de tarjetas */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(20rem,1fr));gap:var(--space-4)}
+.grid>.card{margin-bottom:0}
+.grid>.card:nth-child(2){border-top-color:var(--cat-3)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(8.75rem,1fr));gap:var(--space-3);margin-bottom:var(--space-4)}
+.kpis .kpi:nth-child(1){--kc:var(--cat-1)}.kpis .kpi:nth-child(2){--kc:var(--cat-2)}.kpis .kpi:nth-child(3){--kc:var(--cat-3)}.kpis .kpi:nth-child(4){--kc:var(--cat-4)}.kpis .kpi:nth-child(5){--kc:var(--cat-5)}
+.roles{display:grid;grid-template-columns:repeat(auto-fit,minmax(14.4rem,1fr));gap:var(--space-3);padding:var(--space-1) var(--space-5) var(--space-5);overflow-y:auto}
+
+/* Tabla de eventos */
+tr.click{cursor:pointer}
+tr.click:hover{background:var(--color-brand-soft)}
+
+/* Bloque de pieza del evento */
+.pz{margin-bottom:var(--space-3);padding:var(--space-3) var(--space-4);background:var(--color-surface);border:var(--border-w) solid var(--color-border);border-left:var(--accent-w) solid var(--color-border);border-radius:var(--radius-lg)}
+.pz.pen{background:linear-gradient(100deg,var(--color-warning-soft),var(--color-surface) 40%);border-left-color:var(--color-warning-edge)}
+.pz.reg{background:linear-gradient(100deg,var(--color-success-soft),var(--color-surface) 40%);border-left-color:var(--color-success)}
+.pz.sin{background:linear-gradient(100deg,var(--color-brand-soft),var(--color-surface) 40%);border-left-color:var(--cat-1)}
+.pzh{display:flex;flex-wrap:wrap;gap:var(--space-2);align-items:center}
+.pzh b{font-size:var(--text-base)}
+details.gd{border-left:var(--accent-w) solid var(--dc)}
+details.gd summary{display:flex;gap:var(--space-2);align-items:center;cursor:pointer;font-size:var(--text-lg)}
+.ciclo,.pasos-l{margin:var(--space-2) 0 0;padding-left:var(--space-5)}
+.ciclo li,.pasos-l li{margin:var(--space-2) 0}
+
+/* Línea de tiempo */
+.tl{list-style:none;margin:0;padding:0 0 0 var(--space-2)}
+.tl li{position:relative;padding:0 0 var(--space-3) var(--space-5);border-left:2px solid var(--color-border)}
+.tl li::before{content:"";position:absolute;left:-6px;top:4px;width:.625rem;height:.625rem;border-radius:50%;background:var(--dc)}
+.tl li:last-child{border-left-color:transparent}
+
+/* Diálogos */
+dialog{width:92%;min-width:20rem;max-width:32.5rem;padding:var(--space-5);background:var(--color-surface);color:var(--color-text);border:var(--border-w) solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-md)}
+dialog::backdrop{background:var(--color-scrim)}
+dialog h3{margin:0 0 var(--space-2)}
+dialog.big{width:min(96vw,var(--dialog-w));max-width:var(--dialog-w);max-height:92vh;padding:0;overflow:hidden}
+dialog.big form{display:flex;flex-direction:column;max-height:92vh}
+dialog.big .alert,dialog.big .rp,dialog.big .chips,dialog.big>form>p{margin-left:var(--space-5);margin-right:var(--space-5)}
+.dh{display:flex;align-items:center;gap:var(--space-2);margin:0;padding:var(--space-4) var(--space-5) var(--space-3);background:linear-gradient(100deg,var(--color-brand-soft),var(--color-surface));border-bottom:var(--border-w-strong) solid var(--dc)}
+.dh h3{flex:1;margin:0;font-size:var(--text-xl)}
+.fg{flex:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(14.4rem,1fr));gap:var(--space-1) var(--space-4);padding:var(--space-1) var(--space-5) var(--space-3);overflow-y:auto}
+.fsec{grid-column:1/-1;margin:var(--space-5) 0 var(--space-1);padding-bottom:var(--space-2);border-bottom:2px solid var(--color-brand-soft);font-size:var(--text-md);text-transform:uppercase;letter-spacing:var(--tracking-caps);color:var(--color-brand)}
+.rp{display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-2)}
+.rp .bar{flex:1;margin:0}
+.chips{display:flex;gap:var(--space-2);margin-bottom:var(--space-1);padding-bottom:var(--space-2);overflow-x:auto}
+.foot{padding:var(--space-3) var(--space-5);background:var(--color-surface);border-top:var(--border-w) solid var(--color-border)}
+.pvb{flex:1;padding:0 var(--space-5) var(--space-3);overflow-y:auto}
+.pvb tr.tot td{border-top:2px solid var(--color-brand)}
+
+/* Contenedor de avisos emergentes y recorrido guiado */
+#toasts{position:fixed;right:var(--space-4);bottom:var(--space-4);z-index:var(--z-toast);display:flex;flex-direction:column;gap:var(--space-2);max-width:min(26rem,92vw)}
+#tour{position:fixed;z-index:var(--z-tour);width:min(20rem,92vw);padding:var(--space-4);background:var(--color-surface);color:var(--color-text);border:var(--border-w) solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg)}
+#tour h4{margin:0 0 var(--space-1);font-size:var(--text-base)}
+#tour p{margin:0 0 var(--space-3);font-size:var(--text-base)}
+.tour-hl{position:relative;z-index:var(--z-tour-target);outline:3px solid var(--color-brand);outline-offset:3px;border-radius:var(--radius-sm);box-shadow:0 0 0 9999px var(--color-scrim)}
+
+/* Panel «Diseño» (perillas del tema) */
+.knobs{display:grid;gap:var(--space-3);padding:var(--space-3) var(--space-5) var(--space-4)}
+.knob{display:grid;grid-template-columns:1fr auto;gap:var(--space-1) var(--space-3);align-items:center}
+.knob label{font-weight:var(--weight-medium)}
+.knob output{font-variant-numeric:tabular-nums;color:var(--color-text-muted)}
+.knob input[type=range]{grid-column:1/-1;width:100%;height:auto;padding:0;accent-color:var(--color-brand)}
+.swatches{display:flex;flex-wrap:wrap;gap:var(--space-2)}
+.swatch{width:2rem;height:2rem;padding:0;border-radius:50%;border:var(--border-w-strong) solid var(--color-surface);box-shadow:0 0 0 1px var(--color-border)}
+
+/* Ficha imprimible */
+.fp h2{margin:var(--space-5) 0 var(--space-2)}
+.fp .ficha{margin-bottom:var(--space-3)}
+.hoja textarea{width:100%;min-height:4.4rem;margin-bottom:var(--space-2)}

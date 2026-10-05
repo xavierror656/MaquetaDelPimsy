@@ -40,7 +40,6 @@ Q-01, Q-02, Q-04, Q-05, Q-06, Q-08, Q-13, Q-14, Q-15, Q-20, Q-21, Q-29, Q-30, Q-
 ## Deuda técnica
 - Se probó con un navegador automatizado (carga, vistas, guía por departamento, fusión, firma de IPH, sin errores de consola). Falta un recorrido manual con usuarios reales.
 - Sin pruebas automatizadas.
-- Es un archivo único; si crece, separar JS/CSS.
 
 ## Mejoras de usabilidad
 Guía «Tu siguiente paso» por departamento y evento, barra de avance para cerrar, explicación inicial en 4 pasos, estados con texto claro, resumen automático en lenguaje normal y datos técnicos ocultos por defecto.
@@ -60,3 +59,6 @@ Tarjetas de resumen con filtros (todos, donde me falta aportar, listos para cerr
 
 ## Primera visita
 Al entrar por primera vez se elige el departamento (tarjetas de color con lo que hace cada uno), se recuerda para la siguiente visita y se ofrece el recorrido guiado, que al terminar oculta la explicación inicial. «Reiniciar datos» pide confirmación. Favicon y metadatos agregados.
+
+## Diseño atómico y tema centralizado
+`maqueta/DESIGN.md` (31 leyes), `css/` en capas (theme → base → atoms → molecules → organisms → responsive), `ui/` con átomos, moléculas y organismos puros sin dominio, `ui/theme.js` con las perillas (matiz, tamaño del texto, espaciado, redondeo) y un panel «Diseño» en el encabezado. `tools/lint-design.mjs` hace cumplir las leyes (sin colores/tamaños/capas literales fuera del tema, dependencias entre capas, sin emojis, tokens existentes) y corre en GitHub Actions antes de publicar.

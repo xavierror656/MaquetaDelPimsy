@@ -29,9 +29,12 @@ jobs:
       - name: Descargar el repositorio
         uses: actions/checkout@v4
 
+      - name: Leyes de diseño (maqueta/DESIGN.md)
+        run: node maqueta/tools/lint-design.mjs
+
       - name: Revisar que existan los archivos de la maqueta
         run: |
-          for f in index.html app.js esquema.js catalogos.js vendor/alpine.min.js; do
+          for f in index.html app.js esquema.js catalogos.js css/theme.css ui/atoms.js ui/molecules.js ui/organisms.js ui/theme.js DESIGN.md vendor/alpine.min.js; do
             test -f "maqueta/$f" || { echo "Falta maqueta/$f"; exit 1; }
           done
 
