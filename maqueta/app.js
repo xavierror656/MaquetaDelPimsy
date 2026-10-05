@@ -506,12 +506,23 @@ function analizarCeri(rows,archivo){
       calle:String(r.CALLE||'').trim(),cruce:String(r.CALLE_ESQUINA||'').trim(),cp,nx:ne,ni,referencia:String(r.REFERENCIA||'').trim(),flags:fl,evento:null,estado:'pendiente',
       caduca:new Date(Date.now()+CADUCA_DIAS*864e5).toISOString().slice(0,10),archivo})});
   return {ok,cont,flags,personales}}
+function estadoCeri(texto,tipo=''){const el=$('#ceri-estado');if(!el)return;el.className='small '+(tipo==='err'?'no':'mut');el.innerHTML=texto?(tipo==='err'?ic('alert')+' ':'')+texto:''}
+function mensajeLectura(er,nombre){
+  if(er&&(er.name==='NotReadableError'||/could not be read|permission/i.test(er.message||'')))return `No se pudo leer «${esc(nombre)}». Si lo tienes abierto en Excel, ciérralo e inténtalo otra vez. Si está en OneDrive y solo en la nube, ábrelo una vez para que se descargue o cópialo a otra carpeta.`;
+  if(er&&er.name==='NotFoundError')return `«${esc(nombre)}» ya no está en ese lugar. Elígelo otra vez.`;
+  return esc((er&&er.message)||'No se pudo leer el archivo.')}
+async function procesarArchivoCeri(fl){
+  if(!fl)return;
+  if(!/\.(xlsx|xls|csv)$/i.test(fl.name)){estadoCeri(`«${esc(fl.name)}» no es un Excel ni un CSV. Elige el archivo .xlsx, .xls o .csv del reporte de CERI.`,'err');return}
+  estadoCeri(`Leyendo «${esc(fl.name)}»…`);
+  try{const buf=await fl.arrayBuffer();if(await leerArchivoCeri(buf,fl.name))estadoCeri('')}
+  catch(er){estadoCeri(mensajeLectura(er,fl.name),'err')}}
 async function leerArchivoCeri(buf,nombre){
   await cargarXLSX();
   const wb=XLSX.read(buf,{type:'array',cellDates:false});
   const hoja=wb.SheetNames.includes('Exportacion')?'Exportacion':wb.SheetNames.find(n=>XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1}).length>1)||wb.SheetNames[0];
   const rows=XLSX.utils.sheet_to_json(wb.Sheets[hoja],{defval:'',raw:true});
-  const res=analizarCeri(rows,nombre);if(res.error)return toast(res.error,1);res.hoja=hoja;vistaPrevia(res,nombre)}
+  const res=analizarCeri(rows,nombre);if(res.error){estadoCeri(esc(res.error),'err');toast(res.error,1);return false}res.hoja=hoja;vistaPrevia(res,nombre);return true}
 function vistaPrevia(res,nombre){
   const d=$('#dlg');d.className='big';d.oncancel=null;const c=res.cont;
   const fila=(l,n,cls='')=>`<tr class="${cls}"><td>${l}</td><td style="text-align:right"><b>${n}</b></td></tr>`;
@@ -598,7 +609,7 @@ function vPre(){
   return `<div class="card"><h2>Preregistros CERI <span class="small mut">(sin teléfono ni relator; solo procedentes con SPM)</span></h2>
   <p class="small">Caduca si ningún área le agrega una consecuencia: <b>${CADUCA_DIAS} días</b> <span class="b pendiente">VALOR DE EJEMPLO</span>${pv('Q-29')}. Las coordenadas UTM se convierten a latitud/longitud de forma aproximada; en producción lo hace PostGIS. Si la hora de arribo es igual a la de inicio, se importa vacía.</p>
   ${UM.alert({tipo:'',html:'<b>Cómo se usa:</b> 1) sube el Excel del reporte de CERI; 2) revisa la vista previa e importa; 3) mira los puntos en el mapa o busca el folio en la tabla y pulsa «Prellenar evento»; 4) revisa el formulario ya lleno y créalo. También puedes elegir el preregistro dentro de «Nuevo evento».'})}
-  <div class="card soft noprint"><h3>1. Subir el reporte de CERI</h3><p class="small">Acepta el Excel del reporte macro (.xlsx o .xls) o un CSV. Se aplican las reglas de <code>05-ceri</code>: solo procedentes con SPM, sin folios repetidos y <b>sin teléfono ni relator</b> (esas columnas ni se leen). Todo se procesa en tu navegador: el archivo no se sube a ningún servidor.</p><div class="row"><label class="btnlike" style="cursor:pointer">${ic('plus')} Elegir archivo<input type="file" accept=".xlsx,.xls,.csv" data-f="ceri" hidden></label><button class="sec" data-act="muestraCeri">Probar con la muestra sintética</button></div></div>
+  <div class="card soft noprint"><h3>1. Subir el reporte de CERI</h3><p class="small">Acepta el Excel del reporte macro (.xlsx o .xls) o un CSV. Se aplican las reglas de <code>05-ceri</code>: solo procedentes con SPM, sin folios repetidos y <b>sin teléfono ni relator</b> (esas columnas ni se leen). Todo se procesa en tu navegador: el archivo no se sube a ningún servidor.</p><div id="ceri-drop" class="drop"><div class="row"><button data-act="elegirCeri">${ic('plus')} Elegir archivo</button><button class="sec" data-act="muestraCeri">Probar con la muestra sintética</button><span class="small mut">o arrastra aquí el Excel</span></div><input type="file" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" data-f="ceri" hidden></div><p id="ceri-estado" class="small" role="status" aria-live="polite"></p></div>
   <h3>2. Ver los preregistros en el mapa</h3>
   ${UO.mapPanel({id:'mapa-pre',grande:true,leyenda:LEYENDA_PRE,pie:'Cargando el mapa…'})}
   <h3>3. Elegir un preregistro</h3>
@@ -815,6 +826,8 @@ document.addEventListener('click',x=>{
   switch(a){
    case 'ficha':return go('ficha');
    case 'tab':tab=k;return render();
+   case 'elegirCeri':{const i=document.querySelector('[data-f=ceri]');if(i){i.value='';i.click()}return}
+   case 'irPre':$('#dlg').close();return go('pre');
    case 'verMapa':{const m=MARC.get(k);if(m&&MAPA_PRE){$('#mapa-pre').scrollIntoView({block:'center'});MAPA_PRE.setView(m.getLatLng(),16,{animate:false});m.openPopup()}return}
    case 'preMas':PQ.n+=100;{const r=$('#prows');if(r)r.innerHTML=filasPre();const c=$('#pcount');if(c)c.textContent=resumenPre()}return;
    case 'mapaGuardar':{if(!MAPA_PEND)return;const [la,lo]=MAPA_PEND;return mut(e,['crearA','levantarB'],'Ubicación ajustada en el mapa',()=>{e.origen.latitud=+la.toFixed(6);e.origen.longitud=+lo.toFixed(6);e.origen.fuente_geocodificacion=CAT.fuente_geo[0];e.origen.punto_validado='Sí'})}
@@ -834,7 +847,7 @@ document.addEventListener('click',x=>{
    case 'abrir':return go('det',id);
    case 'otra':e.version++;aud(e,'UPDATE','evento','Edición simulada de otra área');return toast('Otra área guardó. Tu pantalla ya está desactualizada: intenta guardar.');
    case 'nuevoA':return abrirForm({entKey:'evento',titulo:'Nuevo evento (Ruta A, origen primero)',e:null,fields:[CAMPO_PREREG,...EVENTO],values:{municipio:'Juárez',entidad:'Chihuahua'},
-     aviso:'Puedes prellenarlo con un preregistro del reporte de CERI (primer campo) o capturarlo a mano: basta con tipo de origen y fecha.',okLabel:'Crear evento',ok:vals=>{const {prereg,...o}=vals;crearA(o,prereg?S.pre.find(z=>z.folio===prereg.split(' ')[0]&&!z.evento):undefined)}});
+     aviso:'Puedes prellenarlo con un preregistro del reporte de CERI (primer campo) o capturarlo a mano: basta con tipo de origen y fecha. ¿Todavía no subes el Excel? '+UA.button({label:'Subir el reporte de CERI',act:'irPre',kind:'sec',size:'sm',type:'button'}),okLabel:'Crear evento',ok:vals=>{const {prereg,...o}=vals;crearA(o,prereg?S.pre.find(z=>z.folio===prereg.split(' ')[0]&&!z.evento):undefined)}});
    case 'nuevoB':{const n=mkEv('B');n.estado='borrador_sin_origen';aud(n,'INSERT','evento','Ruta B: provisional');S.eventos.push(n);go('det',n.id);return toast(`${n.ref} creado en borrador sin origen.`)}
    case 'promover':{const p=S.pre.find(z=>z.folio===k);
      return abrirForm({entKey:'evento',titulo:'Revisa el evento antes de crearlo',e:null,fields:EVENTO,values:desdePre(p),aviso:`Prellenado con el preregistro <b>${esc(p.folio)}</b> del reporte de CERI. Corrige lo que haga falta.`,okLabel:'Crear evento',ok:vals=>crearA(vals,p)})}
@@ -890,8 +903,11 @@ document.addEventListener('input',x=>{
   const k=x.target.dataset.h;if(!k)return;const h=hojaLoad(dept);h[k]=x.target.value;hojaSave(dept,h)});
 document.addEventListener('change',x=>{const f=x.target.dataset.f;
   if(x.target.dataset.tarea){SES.hechas[x.target.dataset.tarea]=x.target.checked;sesSave();renderSesion();return}
-  if(f==='ceri'){const fl=x.target.files[0];if(!fl)return;fl.arrayBuffer().then(b=>leerArchivoCeri(b,fl.name)).catch(er=>toast(er.message||'No se pudo leer el archivo.',1));x.target.value='';return}
+  if(f==='ceri'){const fl=x.target.files[0];if(!fl)return;procesarArchivoCeri(fl);return}
   if(f==='imp'){const fl=x.target.files[0];if(!fl)return;fl.text().then(t=>{try{const g=JSON.parse(t);if(!g.S||!Array.isArray(g.S.eventos))throw new Error('x');S=g.S;view='eventos';cur=null;render();toast('Datos importados.')}catch(er){toast('El archivo no es un respaldo válido de la maqueta.',1)}});return}if(f==='st'||f==='mio'){FL[f]=x.target.type==='checkbox'?x.target.checked:x.target.value;$('#rows').innerHTML=filas()}});
+document.addEventListener('dragover',x=>{if(x.target.closest&&x.target.closest('#ceri-drop')){x.preventDefault();x.target.closest('#ceri-drop').classList.add('sobre')}});
+document.addEventListener('dragleave',x=>{const z=x.target.closest&&x.target.closest('#ceri-drop');if(z)z.classList.remove('sobre')});
+document.addEventListener('drop',x=>{const z=x.target.closest&&x.target.closest('#ceri-drop');if(!z)return;x.preventDefault();z.classList.remove('sobre');procesarArchivoCeri(x.dataTransfer.files[0])});
 document.addEventListener('keydown',x=>{
   const t=x.target;
   if((x.key==='/'&&!/INPUT|TEXTAREA|SELECT/.test(t.tagName)&&!$('#dlg').open&&!$('#dlg2').open)||((x.ctrlKey||x.metaKey)&&x.key.toLowerCase()==='k')){x.preventDefault();$('#gq').focus();$('#gq').select()}
@@ -936,6 +952,9 @@ try{const dd=localStorage.getItem('pimsy_dept');if(dd&&DEPTS[dd])dept=dd}catch(x
 SES=sesLoad();
 $('#instalar').innerHTML=ic('download');
 window.addEventListener('beforeinstallprompt',x=>{x.preventDefault();window.__instalar=x;$('#instalar').hidden=false});
-if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
+if('serviceWorker' in navigator&&location.protocol==='https:'){
+  const habia=!!navigator.serviceWorker.controller;
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(habia)toast('Hay una versión nueva de la maqueta.','ok',{label:'Recargar',fn:()=>location.reload()})})}
 render();
 try{if(!localStorage.getItem('pimsy_dept'))setTimeout(()=>elegirRol(true),300);else if(localStorage.getItem('pimsy_tour')!=='1')setTimeout(()=>tour(0),400)}catch(x){}

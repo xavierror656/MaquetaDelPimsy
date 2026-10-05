@@ -140,3 +140,7 @@ dialog.big .alert,dialog.big .rp,dialog.big .chips,dialog.big>form>p{margin-left
 .mapa .leaflet-popup-content-wrapper,.mapa .leaflet-popup-tip{background:var(--color-surface);color:var(--color-text)}
 .mapa .leaflet-popup-content{margin:var(--space-3);font-family:var(--font-sans);font-size:var(--text-md)}
 .mp-a{margin-top:var(--space-2)}
+
+/* Zona para arrastrar el Excel */
+.drop{padding:var(--space-4);border:var(--border-w) dashed var(--color-brand);border-radius:var(--radius-md);background:var(--color-surface)}
+.drop.sobre{background:var(--color-brand-soft);border-style:solid}

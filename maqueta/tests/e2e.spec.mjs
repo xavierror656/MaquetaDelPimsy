@@ -199,6 +199,28 @@ test('subir un archivo de CERI muestra el mapa de la vista previa y el de los pr
   expect(errores).toEqual([]);
 });
 
+test('se puede arrastrar el Excel a la zona de carga y un archivo que no sirve da un mensaje claro',async({page})=>{
+  const errores=await abrir(page,'ceri');
+  await page.evaluate(()=>{view='pre';render()});
+  await page.evaluate(async()=>{const t=await (await fetch('muestra_ceri.csv')).text();const dt=new DataTransfer();dt.items.add(new File([t],'reporte.csv',{type:'text/csv'}));
+    document.querySelector('#ceri-drop').dispatchEvent(new DragEvent('drop',{dataTransfer:dt,bubbles:true,cancelable:true}))});
+  await expect(page.locator('#dlg .pvb')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await page.evaluate(()=>{const dt=new DataTransfer();dt.items.add(new File(['hola'],'foto.png',{type:'image/png'}));document.querySelector('#ceri-drop').dispatchEvent(new DragEvent('drop',{dataTransfer:dt,bubbles:true,cancelable:true}))});
+  await expect(page.locator('#ceri-estado')).toContainText('no es un Excel');
+  await page.evaluate(()=>{const dt=new DataTransfer();dt.items.add(new File(['a,b\n1,2'],'otro.csv',{type:'text/csv'}));document.querySelector('#ceri-drop').dispatchEvent(new DragEvent('drop',{dataTransfer:dt,bubbles:true,cancelable:true}))});
+  await expect(page.locator('#ceri-estado')).toContainText('No parece el reporte de CERI');
+  expect(errores).toEqual([]);
+});
+
+test('el botón «Elegir archivo» abre el selector de archivos',async({page})=>{
+  await abrir(page,'ceri');
+  await page.evaluate(()=>{view='pre';render()});
+  const [fc]=await Promise.all([page.waitForEvent('filechooser'),page.getByRole('button',{name:'Elegir archivo'}).click()]);
+  await fc.setFiles(join(RAIZ,'muestra_ceri.csv'));
+  await expect(page.locator('#dlg .pvb')).toBeVisible();
+});
+
 test('Nuevo evento: elegir un preregistro prellena el formulario',async({page})=>{
   await abrir(page,'ceri');
   await page.locator('[data-act=nuevoA]').click();

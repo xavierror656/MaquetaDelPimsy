@@ -1,7 +1,7 @@
 /* Service worker de la maqueta: permite instalarla y abrirla sin conexión.
    Estrategia: lo propio (y TanStack Form desde esm.sh) se sirve del caché y se actualiza en segundo plano.
    Los mosaicos del mapa (OpenStreetMap) siempre van a la red. Para forzar una actualización, sube V. */
-const V='pimsy-v1';
+const V='pimsy-v1'; // el workflow de Pages lo reemplaza por el commit en cada despliegue
 const NUCLEO=['./','index.html','app.js','esquema.js','catalogos.js','manifest.webmanifest','icon.svg',
   'css/theme.css','css/base.css','css/atoms.css','css/molecules.css','css/organisms.css','css/responsive.css',
   'ui/atoms.js','ui/molecules.js','ui/organisms.js','ui/theme.js','vendor/alpine.min.js'];

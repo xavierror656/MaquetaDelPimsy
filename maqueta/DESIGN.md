@@ -108,4 +108,4 @@ El stack decidido es Laravel, no Symfony. Esta arquitectura se traslada así: `u
 
 ## 11. Pruebas
 
-`cd maqueta && npm install && npx playwright install chromium && npm test` corre 25 pruebas de navegador (formularios, permisos, cierre, fusión, Excel, búsqueda, sesión, comentarios, tablero, mapa, tema, accesibilidad) y el linter de leyes. GitHub Actions las corre antes de publicar.
+`cd maqueta && npm install && npx playwright install chromium && npm test` corre 27 pruebas de navegador (formularios, permisos, cierre, fusión, Excel, búsqueda, sesión, comentarios, tablero, mapa, tema, accesibilidad) y el linter de leyes. GitHub Actions las corre antes de publicar.

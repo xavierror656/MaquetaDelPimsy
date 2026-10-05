@@ -73,6 +73,9 @@ jobs:
             test -f "maqueta/$f" || { echo "Falta maqueta/$f"; exit 1; }
           done
 
+      - name: Estampar la versión del service worker
+        run: sed -i "s/pimsy-v1/pimsy-${GITHUB_SHA::7}/" maqueta/sw.js
+
       - name: Configurar Pages
         uses: actions/configure-pages@v5
 
