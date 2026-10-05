@@ -20,11 +20,14 @@
 <header>
   <h1>PIMSy · Maqueta</h1>
   <label><span class="lt"><b>¿Quién eres?</b> Soy del departamento:</span> <select id="dept" aria-label="Departamento"></select></label>
-  <div class="hr"><button class="ghost" id="design" data-act="diseno" aria-label="Personalizar el diseño" title="Diseño"></button><button class="ghost" id="help" aria-label="Ver recorrido de ayuda" title="Recorrido de ayuda"></button><button class="ghost" id="theme" aria-label="Cambiar tema"></button></div>
+  <div class="gsearch"><input id="gq" type="search" placeholder="Buscar en todo  ( / )" aria-label="Buscar en todo" autocomplete="off"><div id="gres" class="gres" hidden></div></div>
+  <div class="hr"><button class="ghost" id="sesionBtn" data-act="sesion" aria-label="Sesión de validación" title="Sesión de validación"></button><button class="ghost" id="design" data-act="diseno" aria-label="Personalizar el diseño" title="Diseño"></button><button class="ghost" id="help" aria-label="Ver recorrido de ayuda" title="Recorrido de ayuda"></button><button class="ghost" id="theme" aria-label="Cambiar tema"></button></div>
   <nav id="nav" aria-label="Secciones"></nav>
 </header>
 <main id="app" tabindex="-1"></main>
 <dialog id="dlg" aria-labelledby="dlgt"></dialog>
+<dialog id="dlg2" aria-labelledby="dlgt2"></dialog>
+<div id="sesion" class="sesion" hidden></div>
 <div id="toasts" aria-live="polite"></div>
 <div id="tour" role="dialog" aria-label="Recorrido" hidden></div>
 

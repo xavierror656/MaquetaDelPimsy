@@ -62,7 +62,15 @@ UI.molecules.dataList=pares=>pares.length?`<dl class="ficha">${pares.map(([t,v])
 UI.molecules.yesNo=({modelo,etiqueta,disabled=false})=>
   `<div class="seg" role="group" aria-label="${esc(etiqueta)}"><button type="button" :class="{on:${modelo}==='Sí'}" @click="${modelo}=${modelo}==='Sí'?'':'Sí'" ${disabled?'disabled':''}>Sí</button><button type="button" :class="{on:${modelo}==='No'}" @click="${modelo}=${modelo}==='No'?'':'No'" ${disabled?'disabled':''}>No</button></div>`;
 
+/* Botón para comentar un campo (la hoja de validación junta los comentarios) */
+UI.molecules.commentButton=({clave,etiqueta,tiene=false})=>
+  `<button type="button" class="ghost sm fc ${tiene?'on':''}" data-com="${esc(clave)}" data-etq="${esc(etiqueta)}" title="${tiene?'Ver o cambiar tu comentario':'Comentar este campo'}" aria-label="Comentar el campo ${esc(etiqueta)}">${A.icon('comment')}</button>`;
+
+/* Tarea de una sesión de validación */
+UI.molecules.taskItem=({id,texto,hecha})=>
+  `<li class="tk ${hecha?'hecha':''}"><label class="chkl"><input type="checkbox" data-tarea="${esc(id)}" ${hecha?'checked':''}> <span>${esc(texto)}</span></label>${A.button({label:'Ir',act:'tareaIr',kind:'sec',size:'sm',attrs:`data-k="${esc(id)}"`})}</li>`;
+
 /* Campo de formulario: etiqueta + control + ayuda + nota + error (ligado a Alpine) */
-UI.molecules.field=({id,clave,indice,etiqueta,obligatorio=false,tagsHtml='',controlHtml,ayuda='',nota='',ancho=false})=>
-  `<div class="fld ${ancho?'full':''}" x-show="vis(${indice})" @focusout="touched['${clave}']=true"><label for="f_${id}">${esc(etiqueta)}${obligatorio?' <b class="no" title="Obligatorio">*</b>':''}${tagsHtml}<span class="vok" x-show="okf('${clave}')" title="Correcto">${A.icon('check')}</span></label>${controlHtml}${ayuda?`<small class="ay">${esc(ayuda)}</small>`:''}${nota?`<small class="ay">${esc(nota)}</small>`:''}<span class="ferr" role="alert" x-text="bad('${clave}')?errs['${clave}']:''"></span></div>`;
+UI.molecules.field=({id,clave,indice,etiqueta,obligatorio=false,tagsHtml='',controlHtml,ayuda='',nota='',ancho=false,extraHtml=''})=>
+  `<div class="fld ${ancho?'full':''}" x-show="vis(${indice})" @focusout="touched['${clave}']=true"><label for="f_${id}">${esc(etiqueta)}${obligatorio?' <b class="no" title="Obligatorio">*</b>':''}${tagsHtml}<span class="vok" x-show="okf('${clave}')" title="Correcto">${A.icon('check')}</span>${extraHtml}</label>${controlHtml}${ayuda?`<small class="ay">${esc(ayuda)}</small>`:''}${nota?`<small class="ay">${esc(nota)}</small>`:''}<span class="ferr" role="alert" x-text="bad('${clave}')?errs['${clave}']:''"></span></div>`;
 })();

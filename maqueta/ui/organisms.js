@@ -43,7 +43,7 @@ UI.organisms.dialogShell=({titulo,tagHtml='',cuerpoHtml,pieHtml='',formAttrs=''}
   `<form ${formAttrs}><div class="dh"><h3 id="dlgt">${esc(titulo)}${tagHtml}</h3></div>${cuerpoHtml}${pieHtml?`<div class="foot">${pieHtml}</div>`:''}</form>`;
 
 /* Formulario de captura (hooks de Alpine: formApp en app.js) */
-UI.organisms.formDialog=({titulo,tagHtml='',aviso='',chips=[],camposHtml,okLabel='Guardar',marcaTanstack=false})=>
+UI.organisms.formDialog=({titulo,tagHtml='',aviso='',chips=[],camposHtml,okLabel='Guardar',otroLabel=''})=>
   `<form novalidate x-data="formApp()" @submit.prevent="enviar()">
    <div class="dh"><h3 id="dlgt">${esc(titulo)}${tagHtml}</h3>${A.button({label:A.icon('x'),kind:'ghost',type:'button',attrs:'aria-label="Cerrar" @click="cancelar()"'})}</div>
    ${aviso?`<p class="small mut" style="margin:var(--space-2) 0">${aviso}</p>`:''}
@@ -52,11 +52,29 @@ UI.organisms.formDialog=({titulo,tagHtml='',aviso='',chips=[],camposHtml,okLabel
    ${chips.length>2?`<div class="chips">${chips.map(c=>A.button({label:esc(c.t),kind:'chip',type:'button',attrs:`@click="irA(${c.i})"`})).join('').replace(/class="chip"/g,'class="chip"')}</div>`:''}
    <div class="fg">${camposHtml}</div>
    <div class="foot"><div class="alert" x-show="descartando" x-cloak style="margin:0 0 var(--space-2)">¿Descartar lo que capturaste? ${A.button({label:'Seguir editando',kind:'sec',size:'sm',type:'button',attrs:'@click="descartando=false"'})} ${A.button({label:'Descartar',kind:'bad',size:'sm',type:'button',attrs:'@click="descartar()"'})}</div>
-    <div class="row end"><span class="small mut grow" x-text="estado()"></span>${A.button({label:'Cancelar',kind:'sec',type:'button',attrs:'@click="cancelar()"'})}<button type="submit">${esc(okLabel)}</button></div></div></form>`;
+    <div class="row end"><span class="small mut grow" x-text="estado()"></span>${A.button({label:'Cancelar',kind:'sec',type:'button',attrs:'@click="cancelar()"'})}${otroLabel?A.button({label:esc(otroLabel),kind:'sec',type:'button',attrs:'@click="enviarOtro()"'}):''}<button type="submit" title="Ctrl + Enter">${esc(okLabel)}</button></div></div></form>`;
 
 /* Recorrido guiado: contenido del globo */
 UI.organisms.tourStep=({titulo,texto,pos,total,siguiente})=>
   `<h4>${esc(titulo)}</h4><p>${esc(texto)}</p><div class="row end"><span class="small mut grow">${pos} de ${total}</span>${A.button({label:'Omitir',act:'tourFin',kind:'sec'})}${A.button({label:siguiente,act:'tourSig',attrs:`data-k="${pos}"`})}</div>`;
+
+/* Resultados de la búsqueda global: items = [{tipo,titulo,detalle,act,attrs}] */
+UI.organisms.searchResults=({items,vacio})=>items.length
+  ?`<ul class="gres-l">${items.map(i=>`<li><button type="button" class="mi sec" data-act="${esc(i.act)}" ${i.attrs||''}>${A.badge('sin_novedad',esc(i.tipo))} <b>${esc(i.titulo)}</b><span class="small mut">${esc(i.detalle)}</span></button></li>`).join('')}</ul>`
+  :`<p class="small mut gres-v">${esc(vacio)}</p>`;
+
+/* Panel flotante de la sesión de validación */
+UI.organisms.taskPanel=({titulo,tareas,hechas,total,colapsado})=>
+  `<div class="tp"><div class="tp-h"><b>${A.icon('tasks')} ${esc(titulo)}</b><span class="grow"></span>${A.button({label:colapsado?'Mostrar':'Ocultar',act:'sesionToggle',kind:'ghost',size:'sm'})}</div>
+   ${colapsado?`<p class="small mut tp-c">${hechas} de ${total} tareas</p>`:`${A.bar(total?100*hechas/total:0,100)}<p class="small mut tp-c">${hechas} de ${total} tareas</p><ul class="tp-l">${tareas.map(UI.molecules.taskItem).join('')}</ul>
+   <div class="row end">${A.button({label:'Terminar y comentar',act:'sesionFin'})}</div>`}</div>`;
+
+/* Diálogo para comentar un campo */
+UI.organisms.commentDialog=({titulo,campo,valor})=>
+  `<form method="dialog"><div class="dh"><h3 id="dlgt2">${esc(titulo)}</h3></div>
+   <div class="knobs"><p class="small mut" style="margin:0">Campo: <b>${esc(campo)}</b>. Cuéntanos si falta, sobra o se llama distinto en tu área. Se junta en tu hoja de validación.</p>
+   <textarea id="com-txt" rows="4" aria-label="Tu comentario">${esc(valor)}</textarea></div>
+   <div class="foot"><div class="row end">${A.button({label:'Quitar comentario',kind:'sec',type:'button',attrs:'data-act="comBorrar"'})}${A.button({label:'Cancelar',kind:'sec',type:'button',attrs:'onclick="this.closest(\'dialog\').close()"'})}${A.button({label:'Guardar',type:'button',attrs:'data-act="comGuardar"'})}</div></div></form>`;
 
 /* Panel «Diseño»: perillas del tema. perillas = [{id,etiqueta,min,max,paso,valor,unidad}] */
 UI.organisms.themePanel=({perillas,matices})=>

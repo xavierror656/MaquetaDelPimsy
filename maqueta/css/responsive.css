@@ -25,6 +25,8 @@
   dialog.big form{height:100vh;max-height:100vh}
   .fg{grid-template-columns:1fr}
   .mlist{position:fixed;left:var(--space-2);right:var(--space-2);bottom:4.5rem;min-width:0}
+  .sesion{left:var(--space-2);right:var(--space-2);bottom:4.5rem;width:auto}
+  .gsearch{order:4;max-width:none;flex-basis:100%}
 }
 
 @media (pointer:coarse){
@@ -36,7 +38,7 @@
 }
 
 @media print{
-  header,nav,button,#toasts,#tour,.noprint,dialog{display:none!important}
+  header,nav,button,#toasts,#tour,.noprint,dialog,.sesion{display:none!important}
   body{background:none;color:inherit}
   .card{padding:0;border:0}
   .card,.pz{break-inside:avoid}

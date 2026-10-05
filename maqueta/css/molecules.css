@@ -110,3 +110,11 @@ ul.chk li{display:flex;gap:var(--space-2);align-items:flex-start;padding:var(--s
 .toast.o .ic{color:var(--color-success)}
 .toast .x{height:var(--control-h-sm);padding:0 var(--space-2);border:0;background:transparent;color:var(--color-text-muted);box-shadow:none}
 .toast .lnk{height:var(--control-h-sm);border:var(--border-w) solid var(--color-border);background:transparent;color:var(--color-text);box-shadow:none}
+
+/* Botón de comentario por campo */
+.fc{margin-left:auto;height:var(--control-h-sm);padding:0 var(--space-2);color:var(--color-text-muted)}
+.fc.on{color:var(--color-brand);background:var(--color-brand-soft)}
+
+/* Tarea de sesión */
+.tk{display:flex;gap:var(--space-2);align-items:center;justify-content:space-between;padding:var(--space-2) 0;border-top:var(--border-w) solid var(--color-border)}
+.tk.hecha span{text-decoration:line-through;color:var(--color-text-muted)}

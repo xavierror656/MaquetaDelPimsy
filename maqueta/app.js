@@ -68,6 +68,47 @@ function comps(){const o={};Object.keys(COMP).forEach(k=>o[k]={estado:'pendiente
 function hijo(p){return {id:uid(),area:dept,en:now(),d:{},...p}}
 function agSnap(emp,roles){const a=AGENTES_MONGO[emp];return {id:uid(),emp,es_externo:false,institucion_externa:'',nombre:a.nombre,apellido_paterno:a.ap,apellido_materno:a.am,distrito:a.distrito,area:a.area,subarea:a.subarea,puesto:a.puesto,unidad:a.unidad,numero_empleado:emp,roles,en:now(),area_aporta:dept}}
 const motivoDe=cod=>(CAT.motivo.find(m=>m.includes('('+cod+')'))||'');
+/* Eventos de ejemplo extra: uno por situación que cada departamento quiere probar */
+function eventosEjemplo(){
+  const O=(folio,f,hr,arr,col,calle,dis,sec,cod,x,y)=>{const [la,lo]=utm2ll(x,y);return {tipo_origen:CAT.tipo_origen[0],medio_conocimiento:CAT.medio_conocimiento[0],folio_ceri:folio,motivo:motivoDe(cod),fecha_evento:f,hora_evento:hr,fecha_hora_conocimiento:f+'T'+hr,fecha_hora_arribo:f+'T'+arr,calle,cruce_1:'CALLE CRUCE',numero_exterior:'100',colonia:col,codigo_postal:CP_COLONIA[col]||'',referencia:'REFERENCIA FICTICIA',municipio:'Juárez',entidad:'Chihuahua',distrito:dis,sector:sec,latitud:la,longitud:lo,fuente_geocodificacion:CAT.fuente_geo[0]}};
+  const E=(n,creada,origen,agentes)=>({id:uid(),ref:'EVT-000'+n,estado:'en_proceso',ruta:'A',version:2,creada,narrativa:'',canonico:null,origen,agentes,comp:comps()});
+  const R=CAT.rol_agente,sn=(e,...ks)=>ks.forEach(k=>e.comp[k].estado='sin_novedad');
+  // EVT-0004 · un detenido por delito federal y otro por falta: dos IPH por enrutar
+  const iF=uid(),iC=uid(),dA=uid(),dB=uid();
+  const e4=E(4,'ceri',O('9000002','2026-07-01','17:56','18:08','HIDALGO','CALLE EJEMPLO 2','ORIENTE','309','31003',361031.37,3498363.44),[agSnap('E-0001',[R[0],R[2]])]);
+  e4.comp.detencion.hijos=[hijo({area:'policia',ent:'detencion',d:{fecha_hora:'2026-07-01T18:20',tipo_detencion:CAT.tipo_detencion[0],observaciones:'Detención sintética'}}),
+    hijo({id:dA,area:'policia',ent:'detenido',iphId:iF,d:{nombre_snap:'Detenido Sintético B',apellido_paterno_snap:'Federal',sexo_snap:'Hombre',edad_al_momento_evento:'28',lectura_derechos:'Sí'}}),
+    hijo({id:dB,area:'policia',ent:'detenido',iphId:iC,d:{nombre_snap:'Detenida Sintética C',apellido_paterno_snap:'Cívica',sexo_snap:'Mujer',edad_al_momento_evento:'35',lectura_derechos:'Sí'}}),
+    hijo({area:'policia',ent:'delito',d:{detenido:dA,cat_delito:CAT.delito[0],fuero:CAT.fuero[0],hubo_violencia:'No'}}),
+    hijo({area:'policia',ent:'falta',d:{detenido:dB,cat_falta:CAT.falta_administrativa[0],fraccion:'III'}})];
+  e4.comp.iph.hijos=[hijo({id:iF,area:'juridico',ent:'iph',estado:'borrador',d:{folio_sistema:'IPH-000004',tipo:'Delito',fuero:CAT.fuero[0],autoridad_destino:CAT.autoridad[0]}}),
+    hijo({id:iC,area:'juridico',ent:'iph',estado:'borrador',d:{folio_sistema:'IPH-000005',tipo:'Falta administrativa',fuero:CAT.fuero[2],autoridad_destino:CAT.autoridad[2]}})];
+  sn(e4,'aseguramiento');
+  // EVT-0005 · aseguramiento sin detenido: falta su propio IPH
+  const aS=uid();
+  const e5=E(5,'policia',O('9000011','2026-07-02','10:00','10:12','PARAJES DEL SUR','CALLE EJEMPLO 5','RIVERAS','519','50301',366679.98,3492663.5),[agSnap('E-0002',[R[0]])]);
+  e5.comp.aseguramiento.hijos=[hijo({id:aS,area:'juridico',ent:'aseguramiento',iphId:null,d:{descripcion:'Aseguramiento sin detenido (sintético)'}}),
+    hijo({area:'juridico',ent:'sustancia',d:{aseguramiento:aS,categoria_sustancia:CAT.categoria_sustancia[0],unidad_peso:'Gramos',cantidad_peso:'25',procedencia_hallazgo:CAT.procedencia_hallazgo[1]}}),
+    hijo({area:'juridico',ent:'vehiculo',d:{pertenece_a:'Aseguramiento',aseguramiento:aS,inspeccionado:'Sí',tipo_vehiculo:CAT.tipo_vehiculo[0],procedencia:'Nacional',placas:'FICT-123',situacion:CAT.situacion_vehiculo[1]}})];
+  sn(e5,'detencion');
+  // EVT-0006 · completo y listo para que Plataforma lo cierre
+  const e6=E(6,'ceri',O('9000012','2026-07-03','09:30','09:41','VILLAS DEL BRAVO I','CALLE EJEMPLO 6','PONIENTE','702','50301',371369.4,3502612.52),[agSnap('E-0003',[R[0],R[1]])]);
+  sn(e6,'detencion','aseguramiento','resguardo','entrega','victimas','fuerza','iph');
+  e6.comp.emergencia.hijos=[hijo({area:'policia',ent:'emergencia',d:{clasificacion:CAT.clasificacion_emergencia[0],tipo_emergencia:CAT.tipo_emergencia[0],descripcion:'Atención sintética'}})];
+  e6.comp.parte.hijos=[hijo({area:'policia',ent:'parte',d:{tipo:CAT.tipo_parte[0],estatus:CAT.estatus_parte[1]}})];
+  // EVT-0007 · ya cerrado: Jurídico puede reabrirlo
+  const e7=E(7,'ceri',O('9000013','2026-07-03','14:10','14:22','LOS ALCALDES AMPLIACION','CALLE EJEMPLO 7','SUR','701','31002',369793.52,3493614.53),[agSnap('E-0001',[R[0]])]);
+  e7.estado='cerrado';sn(e7,'detencion','aseguramiento','resguardo','entrega','victimas','fuerza','iph');
+  e7.comp.emergencia.hijos=[hijo({area:'policia',ent:'emergencia',d:{clasificacion:CAT.clasificacion_emergencia[0],descripcion:'Atención sintética'}})];
+  e7.comp.parte.hijos=[hijo({area:'policia',ent:'parte',d:{tipo:CAT.tipo_parte[0],estatus:CAT.estatus_parte[1]}})];
+  // EVT-0008 · víctima con atención especializada y resguardo de una persona; faltan agentes
+  const pV=uid(),rg=uid();
+  const e8=E(8,'ceri',O('9000014','2026-07-04','11:20','11:30','AMERICAS','CALLE EJEMPLO 8','CENTRO','505','31002',361823.81,3498363.44),[]);
+  e8.comp.victimas.hijos=[hijo({id:pV,area:'policia',ent:'participante',d:{rol:'Víctima',nombre:'Persona Sintética D',apellido_paterno:'Ficticia',sexo:CAT.sexo[1],edad_al_momento_evento:'33',requirio_canalizacion:'Sí',atencion_psicologica:CAT.atencion_psicologica[0]}}),
+    hijo({area:'policia',ent:'atencion_esp',d:{participante:pV,unidad_especializada:CAT.unidad_especializada[0],fecha_hora:'2026-07-04T12:00',observaciones:'Atención sintética'}})];
+  e8.comp.resguardo.hijos=[hijo({id:rg,area:'policia',ent:'resguardo',d:{tipo:'Persona',motivo:'Riesgo para la persona',institucion_resguardo:CAT.institucion_resguardo[0]}}),
+    hijo({area:'policia',ent:'persona_resguardada',d:{resguardo:rg,nombre:'Persona Sintética E',apellido_paterno:'Ficticia',edad_al_momento_evento:'8'}})];
+  return [e4,e5,e6,e7,e8]}
 function seed(){
   const ph=uid(),ag=uid();
   const [la,lo]=utm2ll(360869.24,3500717.64);
@@ -86,11 +127,13 @@ function seed(){
     origen:{fecha_evento:'2026-07-01',hora_evento:'13:50',colonia:'PIE DE CASA (EL GRANJERO)',municipio:'Juárez',entidad:'Chihuahua'},agentes:[agSnap('E-0002',['Apoyo'].filter(x=>CAT.rol_agente.includes(x)))],comp:comps()};
   e3.comp.parte.hijos=[hijo({area:'policia',ent:'parte',d:{tipo:CAT.tipo_parte[0],estatus:CAT.estatus_parte[0]}})];
   const P=(folio,ini,acu,inc,col,dis,sec,x,y,calle,cp,nx,ev)=>({folio,fecha:ini,arribo:acu,incidente:inc,colonia:col,distrito:dis,sector:sec,x,y,calle,cruce:'CALLE CRUCE '+folio.slice(-1),cp,nx,evento:ev});
-  S={eventos:[e1,e2,e3],audit:[],pre:[
+  const extra=eventosEjemplo();
+  S={eventos:[e1,e2,e3,...extra],audit:[],pre:[
     P('9000001','2026-07-01T13:31','2026-07-01T13:42','ROBO A ESCUELA SIN VIOLENCIA','PIE DE CASA (EL GRANJERO)','CENTRO','505',360869.24,3500717.64,'CALLE EJEMPLO 1','32693','1000',e1.id),
     P('9000002','2026-07-01T17:56','2026-07-01T18:08','DAÑO A BIENES PUBLICOS, INSTITUCIONES, MONUMENTOS, ENTRE OTROS','HIDALGO','ORIENTE','309',361031.37,3498363.44,'CALLE EJEMPLO 2','32300','1037',null),
     P('9000003','2026-07-01T09:32','2026-07-01T09:39','EXTORSION TELEFONICA','VILLAS DEL BRAVO I','PONIENTE','702',371369.4,3502612.52,'CALLE EJEMPLO 3','32417','1074',null),
     P('9000004','2026-07-01T09:03','2026-07-01T09:03','RIÑA / PELEA CLANDESTINA','PARAJES DEL SUR','RIVERAS','519',366679.98,3492663.5,'CALLE EJEMPLO 4','32575','1111',null)]};
+  S.pre[1].evento=extra[0].id;
   S.eventos.forEach(e=>aud(e,'INSERT','evento','Semilla sintética'));
 }
 function aud(e,op,tabla,det){S.audit.push(Object.freeze({n:S.audit.length+1,en:now(),evento:e?e.ref:'-',op,tabla,det,usuario:'usuario simulado',area:dept}))}
@@ -172,6 +215,25 @@ function mut(e,act,desc,fn,tabla='evento'){
 
 /* ===== Motor de formularios: Alpine.js (interactividad) + TanStack Form (validación) ===== */
 const optsOf=(f,e)=>{const o=f.o;if(!o)return [];const L=typeof o==='function'?o(e):(typeof o==='string'?CAT[o]:o);return (L||[]).map(x=>typeof x==='string'?{v:x,l:x}:x)};
+const comKey=()=>'pimsy_coment_'+dept;
+function comLoad(){try{return JSON.parse(localStorage.getItem(comKey())||'{}')}catch(e){return {}}}
+function comSave(o){try{localStorage.setItem(comKey(),JSON.stringify(o))}catch(e){}}
+let comActual=null;
+function abrirComentario(key,etq){
+  comActual=key;const d=$('#dlg2');d.className='';
+  d.innerHTML=UO.commentDialog({titulo:'Comentar un campo',campo:etq,valor:comLoad()[key]||''});d.showModal();setTimeout(()=>$('#com-txt').focus(),50)}
+function guardarComentario(borrar){
+  const o=comLoad(),v=borrar?'':$('#com-txt').value.trim();
+  if(v)o[comActual]=v;else delete o[comActual];comSave(o);$('#dlg2').close();
+  document.querySelectorAll(`#dlg [data-com="${comActual}"]`).forEach(b=>b.classList.toggle('on',!!v));
+  toast(v?'Comentario guardado en tu hoja de validación.':'Comentario quitado.')}
+function infoCampo(key){ // 'entidad.campo' → nombres legibles
+  const [ent,...r]=key.split('.'),campo=r.join('.');
+  const falso={comp:Object.fromEntries(Object.keys(COMP).map(k=>[k,{hijos:[]}])),agentes:[]};
+  const lista=ent==='evento'?EVENTO:ent==='agente'?AGENTE:(ENT[ent]?ENT[ent].fields(falso):[]);
+  const f=lista.find(x=>x.k===campo);
+  return {formulario:ent==='evento'?'Datos del evento':ent==='agente'?'Agente':(ENT[ent]?ENT[ent].n:ent),campo:f?f.l:campo}}
+
 function campo(f,i,e){
   const k=f.k;
   if(f.sec)return `<h4 class="fsec" id="sec_${i}" x-show="vis(${i})">${esc(f.sec)}${f.pv?pv(f.pv):''}</h4>`;
@@ -191,16 +253,17 @@ function campo(f,i,e){
     const tel=/telefono/.test(k),cp=/codigo_postal/.test(k),curp=k==='curp',num=f.t==='number';
     const extra=[tel?'type="tel" inputmode="tel"':num?'type="number" inputmode="decimal" step="any"':`type="${f.t||'text'}"`,cp?'inputmode="numeric" maxlength="5"':'',curp?'maxlength="18" autocapitalize="characters"':'','autocomplete="off"'].join(' ');
     ctl=`<input id="f_${k}" ${extra} ${m} ${cls} ${ar} ${dis}>`}
-  return UM.field({id:k,clave:k,indice:i,etiqueta:f.l,obligatorio:!!f.r,tagsHtml:(f.pv?pv(f.pv):'')+ej,controlHtml:ctl,ayuda:f.ayuda||'',nota:bloq?can(f.act).why:'',ancho:full})}
+  const ck=`${window.__F.entKey||'evento'}.${k}`;
+  return UM.field({id:k,clave:k,indice:i,etiqueta:f.l,obligatorio:!!f.r,tagsHtml:(f.pv?pv(f.pv):'')+ej,controlHtml:ctl,ayuda:f.ayuda||'',nota:bloq?can(f.act).why:'',ancho:full,extraHtml:UM.commentButton({clave:ck,etiqueta:f.l,tiene:!!(window.__COM||{})[ck]})})}
 function abrirForm(c){ // c:{titulo,fields,values,e,ok,okLabel,pv,aviso,draftKey}
-  const d=$('#dlg');window.__F=c;d.className='big';
+  const d=$('#dlg');window.__F=c;window.__COM=comLoad();d.className='big';
   const chips=c.fields.map((f,i)=>f.sec?{i,t:f.sec}:null).filter(Boolean);
-  d.innerHTML=UO.formDialog({titulo:c.titulo,tagHtml:c.pv?pv(c.pv):'',aviso:c.aviso||'',chips,camposHtml:c.fields.map((f,i)=>campo(f,i,c.e)).join(''),okLabel:c.okLabel||'Guardar'});
+  d.innerHTML=UO.formDialog({titulo:c.titulo,tagHtml:c.pv?pv(c.pv):'',aviso:c.aviso||'',chips,camposHtml:c.fields.map((f,i)=>campo(f,i,c.e)).join(''),okLabel:c.okLabel||'Guardar',otroLabel:c.otro?'Guardar y registrar otro':''});
   d.oncancel=x=>{const fa=window.__fa;if(fa&&fa.dirty()){x.preventDefault();fa.descartando=true}};
   d.showModal()}
 function formApp(){
   const c=window.__F,fl=c.fields;
-  return {v:JSON.parse(JSON.stringify(c.values||{})),errs:{},touched:{},sent:false,api:null,flds:{},prev:'',ini:'',restored:false,descartando:false,savedAt:'',tmr:null,
+  return {v:JSON.parse(JSON.stringify(c.values||{})),errs:{},touched:{},sent:false,api:null,flds:{},prev:'',ini:'',restored:false,descartando:false,otro:false,savedAt:'',tmr:null,
    init(){
      window.__fa=this;
      fl.forEach(f=>{if(f.k&&this.v[f.k]===undefined)this.v[f.k]=f.t==='multi'?[]:f.t==='checkbox'?false:''});
@@ -219,7 +282,8 @@ function formApp(){
          if(f.auto&&nv[f.k])Object.entries(f.auto).forEach(([t,fn])=>{if(!nv[t]){const r=fn(nv[f.k]);if(r)this.v[t]=r}});
          if(this.flds[f.k])this.flds[f.k].handleChange(JSON.parse(JSON.stringify(nv[f.k])));
          else if(!this.api)this.errs[f.k]=this.chk(f,nv[f.k])||''});
-       this.guardarBorrador()})},
+       this.guardarBorrador()});
+     this.$nextTick(()=>{if(!matchMedia('(pointer:fine)').matches)return;const el=this.$el.querySelector('.fld input:not([type=checkbox]):not([disabled]),.fld select:not([disabled])');if(el)el.focus()})},
    vis(i){const f=fl[i];return !f.show||!!f.show(this.v,c.e)},
    calc(i){try{return fl[i].fn(this.v)}catch(x){return ''}},
    vacio(val){return Array.isArray(val)?!val.length:!String(val??'').trim()},
@@ -244,12 +308,13 @@ function formApp(){
    irA(i){const el=document.getElementById('sec_'+i);if(el)el.scrollIntoView({behavior:'smooth',block:'start'})},
    cancelar(){if(this.dirty())this.descartando=true;else $('#dlg').close()},
    descartar(){this.limpiarBorrador();$('#dlg').close()},
-   async enviar(){
-     this.sent=true;
+   enviarOtro(){return this.enviar(true)},
+   async enviar(otro=false){
+     this.otro=otro;this.sent=true;
      if(this.api){fl.forEach(f=>{if(f.k&&this.flds[f.k])this.flds[f.k].handleChange(JSON.parse(JSON.stringify(this.v[f.k])))});await this.api.handleSubmit()}
      else{let ok=true;fl.forEach(f=>{if(!f.k||f.t==='calc')return;const er=this.chk(f,this.v[f.k]);this.errs[f.k]=er||'';if(er)ok=false});if(ok)this.fin()}
      const bad=this.$el.querySelector('.ferr:not(:empty)');if(bad){const w=bad.closest('.fld');w.scrollIntoView({block:'center',behavior:'smooth'});const i=w.querySelector('input,select,textarea');if(i)i.focus({preventScroll:true})}},
-   fin(){const out={};fl.forEach(f=>{if(f.k&&f.t!=='calc'&&(!f.show||f.show(this.v,c.e)))out[f.k]=JSON.parse(JSON.stringify(this.v[f.k]))});this.limpiarBorrador();$('#dlg').close();c.ok(out)}}}
+   fin(){const out={};fl.forEach(f=>{if(f.k&&f.t!=='calc'&&(!f.show||f.show(this.v,c.e)))out[f.k]=JSON.parse(JSON.stringify(this.v[f.k]))});this.limpiarBorrador();$('#dlg').close();c.ok(out,this.otro)}}}
 
 /* ===== Vistas ===== */
 const SCHEMES=['auto','light','dark'],TL={auto:'Tema: automático',light:'Tema: claro',dark:'Tema: oscuro'};
@@ -259,12 +324,13 @@ function abrirDiseno(){
   d.innerHTML=UO.themePanel({perillas:THEME.knobs.map(k=>({id:k.id,etiqueta:k.etiqueta,min:k.min,max:k.max,paso:k.paso,unidad:k.unidad,valor:v[k.id]})),matices:THEME.matices});
   d.showModal()}
 function render(){
-  try{localStorage.setItem('pimsy_estado2',JSON.stringify({S,AGENTES_MONGO}))}catch(x){}
+  try{localStorage.setItem('pimsy_estado3',JSON.stringify({S,AGENTES_MONGO}))}catch(x){}
   $('#dept').value=dept;document.documentElement.style.setProperty('--dc',DCOL[dept]);
   const tabs=[['eventos','Eventos'],['pre','Preregistros CERI'],['conc','Conciliación'],['guia','Guía paso a paso'],['perm','Permisos'],['hoja','Hoja de validación'],['aud','Auditoría'],['reset','Reiniciar datos']];
   $('#nav').innerHTML=UO.navBar({items:tabs,actual:view==='det'?'eventos':view,act:'nav'});
   const dd=DEPTS[dept];
   const head=`<p class="legend noprint">Maqueta con datos 100% sintéticos. Departamento activo: <b>${dd.n}</b>${dd.q?pv(dd.q):''}. Lo que no le corresponde aparece deshabilitado con su leyenda. Las etiquetas ${pv('Q-xx')} marcan lo no decidido. Los catálogos marcados «ejemplo» son ficticios.</p>`;
+  renderSesion();
   $('#app').innerHTML=head+({eventos:vLista,det:vDetalle,ficha:vFicha,guia:vGuia,pre:vPre,conc:vConc,perm:vPerm,hoja:vHoja,aud:vAud}[view])();
 }
 function vFicha(){
@@ -313,7 +379,7 @@ function vLista(){
     {etiqueta:'Posibles duplicados',valor:S.eventos.filter(e=>duplicado(e)).length,clave:'dup:',pulsada:FL.dup}]);
   return hero+kpis+`<div class="card"><div class="row"><h2 style="margin:0">Eventos</h2><span class="grow"></span>
    ${B('Nuevo evento (Ruta A)','nuevoA',['crearA'])}${B('Levantar evento (Ruta B)','nuevoB',['levantarB'])}</div>
-   <div class="filtros">${UM.searchBox({id:'q',clave:'q',valor:FL.q,placeholder:'Buscar por folio, colonia o motivo  ( / )',etiqueta:'Buscar eventos'})}
+   <div class="filtros">${UM.searchBox({id:'q',clave:'q',valor:FL.q,placeholder:'Filtrar esta lista',etiqueta:'Filtrar eventos'})}
     <select data-f="st" aria-label="Filtrar por estado"><option value="">Todos los estados</option>${ests.map(k=>`<option value="${k}" ${FL.st===k?'selected':''}>${ETQ[k].replace(/<[^>]+>/g,'').trim()}</option>`).join('')}</select>
     <label class="chkl"><input type="checkbox" data-f="mio" ${FL.mio?'checked':''}> Solo donde me falta aportar</label></div>
    <div class="sc"><table class="rs"><tr><th>Evento</th><th>Folio CERI</th><th>Estado</th><th>Cómo nació</th><th>De qué trata</th><th>Faltan</th><th>Aviso</th></tr><tbody id="rows">${filas()}</tbody></table></div></div>`}
@@ -505,6 +571,7 @@ function vHoja(){
      return `<div class="rev"><div><b>${E.n}</b>${mio?'<span class="tu">te toca</span>':''}${E.pv?pv(E.pv):''}<div class="small mut">${n} campos</div></div>
       <select data-h="rev_${en}" aria-label="Revisión de ${esc(E.n)}"><option value="">Sin revisar</option>${['Está bien','Falta algún campo','Sobra algún campo','No es de mi área'].map(o=>`<option ${h['rev_'+en]===o?'selected':''}>${o}</option>`).join('')}</select>
       <textarea data-h="revn_${en}" placeholder="¿Qué campo falta o sobra? ¿Cómo lo llaman en tu área?">${esc(h['revn_'+en]||'')}</textarea></div>`}).join('')}
+   <h3>Comentarios por campo</h3>${(()=>{const c=comLoad(),ks=Object.keys(c);return ks.length?ks.map(k=>{const i=infoCampo(k);return `<div class="rev"><div><b>${esc(i.formulario)} · ${esc(i.campo)}</b></div>${UA.button({label:'Quitar',act:'comDel',kind:'sec',size:'sm',attrs:`data-k="${esc(k)}"`})}<p style="margin:0;grid-column:1/-1">${esc(c[k])}</p></div>`}).join(''):'<p class="small mut">Aún no comentaste ningún campo. En cualquier formulario, usa el icono de globo junto al nombre del campo.</p>'})()}
    <h3>Preguntas abiertas de tu área</h3>
    ${QDEPT[dept].map(q=>`<label><b>${q}</b> ${esc(Q[q])}</label><textarea data-h="${q}">${esc(h[q]||'')}</textarea>`).join('')}</div>`}
 function auditTabla(a){return a.length?`<div class="sc"><table><tr><th>#</th><th>Cuándo</th><th>Evento</th><th>Op.</th><th>Tabla</th><th>Detalle</th><th>Área</th></tr>${a.map(x=>`<tr><td>${x.n}</td><td>${x.en.slice(11,19)}</td><td>${x.evento}</td><td>${x.op}</td><td>${x.tabla}</td><td>${esc(x.det)}</td><td>${DEPTS[x.area].n}</td></tr>`).join('')}</table></div>`:'<p class="mut">Sin movimientos.</p>'}
@@ -517,13 +584,13 @@ function entForm(e,ent,hid,preset){
   const E=ENT[ent],h=hid?findH(e,hid):null;
   const values=h?JSON.parse(JSON.stringify(h.d)):{...(preset||{})};
   if(!h&&ent==='arma'&&!values.cantidad)values.cantidad='1';
-  abrirForm({titulo:(h?'Editar: ':'Registrar: ')+E.n,pv:E.pv,e,fields:E.fields(e),values,draftKey:h?null:'pimsy_borrador_'+e.id+'_'+ent+'_'+(preset&&preset.pertenece_a||''),
-    aviso:E.restr?'Datos sensibles: acceso restringido. '+pv('Q-33'):'',ok:vals=>guardarEnt(e,ent,h,vals)})}
+  abrirForm({titulo:(h?'Editar: ':'Registrar: ')+E.n,pv:E.pv,e,fields:E.fields(e),values,entKey:ent,otro:!h,draftKey:h?null:'pimsy_borrador_'+e.id+'_'+ent+'_'+(preset&&preset.pertenece_a||''),
+    aviso:E.restr?'Datos sensibles: acceso restringido. '+pv('Q-33'):'',ok:(vals,otro)=>{const r=guardarEnt(e,ent,h,vals);if(otro&&r)setTimeout(()=>entForm(e,ent,null,preset),80)}})}
 function guardarEnt(e,ent,h,vals){
   const E=ENT[ent];let dest=E.comp;
   if(ent==='objeto'||ent==='vehiculo')dest=vals.pertenece_a==='Resguardo'?'resguardo':'aseguramiento';
   const act=ent==='iph'?['iphEditar','iphAsignar']:E.act,keys=E.fields(e).map(f=>f.k).filter(Boolean);
-  mut(e,act,(h?'Actualizado: ':'Registrado: ')+E.n,()=>{
+  return mut(e,act,(h?'Actualizado: ':'Registrado: ')+E.n,()=>{
     if(h){
       const from=compOf(e,h.id);if(from&&from!==dest){e.comp[from].hijos=e.comp[from].hijos.filter(x=>x.id!==h.id);e.comp[dest].hijos.push(h)}
       const keep={};Object.keys(h.d).forEach(k=>{if(!keys.includes(k))keep[k]=h.d[k]});h.d={...keep,...vals};
@@ -540,7 +607,7 @@ function quitarEnt(e,k,id){
   confirmar('Quitar registro',`Se quitará «${esc(E.res(h.d,e,h))}». Queda en la auditoría.`,'Quitar',()=>mut(e,h.ent==='iph'?['iphEditar','iphAsignar']:E.act,'Quitado: '+E.n,()=>{e.comp[k].hijos=e.comp[k].hijos.filter(x=>x.id!==id)},k),true)}
 function agenteForm(e,a){
   const roles=a?[{k:'roles',l:'Roles en el evento',t:'multi',o:'rol_agente',pv:'Q-08',ayuda:'Un agente puede tener varios roles.'}]:AGENTE;
-  abrirForm({titulo:a?'Roles de '+nomAg(a):'Agregar agente',e,fields:roles,values:a?{roles:[...(a.roles||[])]}:{es_externo:'No'},
+  abrirForm({entKey:'agente',titulo:a?'Roles de '+nomAg(a):'Agregar agente',e,fields:roles,values:a?{roles:[...(a.roles||[])]}:{es_externo:'No'},
     aviso:a?'':'Al agregarlo se congela un snapshot de sus datos; si cambian en MongoDB, el snapshot no se modifica.',
     ok:vals=>mut(e,'agentes',a?'Roles de agente actualizados':'Agente agregado con snapshot',()=>{
       if(a){a.roles=vals.roles;return}
@@ -571,8 +638,51 @@ function desdePre(p){
    fecha_evento:p.fecha.slice(0,10),hora_evento:p.fecha.slice(11),fecha_hora_conocimiento:p.fecha,fecha_hora_arribo:p.arribo&&p.arribo!==p.fecha?p.arribo:'',
    calle:p.calle,cruce_1:p.cruce,numero_exterior:p.nx,numero_interior:p.ni||'',colonia:p.colonia,codigo_postal:p.cp,referencia:p.referencia||'REFERENCIA FICTICIA',distrito:p.distrito,sector:p.sector,latitud:la,longitud:lo,fuente_geocodificacion:la===''?'':'Manual'}}
 
+/* ===== Búsqueda global ===== */
+const sinAcento=s=>String(s??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+function buscarGlobal(q){
+  const n=sinAcento(q.trim());if(n.length<2)return null;
+  const R=[],push=x=>{if(R.length<25)R.push(x)},uuid=v=>/^[0-9a-f]{8}-[0-9a-f]{4}-/.test(v);
+  S.eventos.forEach(e=>{const o=e.origen;
+    if(sinAcento([e.ref,o.folio_ceri,o.motivo,o.colonia,o.calle,e.narrativa].join(' ')).includes(n))push({tipo:'Evento',titulo:e.ref+(o.folio_ceri?' · folio '+o.folio_ceri:''),detalle:motCorto(o.motivo)||o.colonia||'sin origen',act:'abrirRes',attrs:`data-id="${e.id}" data-k="resumen"`});
+    e.agentes.forEach(a=>{if(sinAcento([nomAg(a),a.numero_empleado,a.puesto].join(' ')).includes(n))push({tipo:'Agente',titulo:nomAg(a),detalle:e.ref,act:'abrirRes',attrs:`data-id="${e.id}" data-k="agentes"`})});
+    Object.keys(e.comp).forEach(k=>e.comp[k].hijos.forEach(h=>{const E=ENT[h.ent],res=E.res(h.d,e,h);
+      if(sinAcento([E.n,res,...Object.values(h.d).filter(v=>typeof v==='string'&&!uuid(v))].join(' ')).includes(n))push({tipo:E.n,titulo:res,detalle:e.ref+' · '+COMP[k].n,act:'abrirRes',attrs:`data-id="${e.id}" data-k="piezas"`})}))});
+  S.pre.forEach(p=>{if(sinAcento([p.folio,p.incidente,p.colonia].join(' ')).includes(n))push({tipo:'Preregistro CERI',titulo:p.folio+' · '+p.incidente,detalle:p.colonia,act:'nav',attrs:'data-k="pre"'})});
+  return R}
+function mostrarResultados(){
+  const q=$('#gq').value,r=buscarGlobal(q),box=$('#gres');
+  if(r===null){box.hidden=true;return}
+  box.innerHTML=UO.searchResults({items:r,vacio:'Sin resultados. Prueba con un folio, un nombre, unas placas o una colonia.'});box.hidden=false}
+
+/* ===== Sesión de validación con un departamento ===== */
+const TAREAS={
+ ceri:[{id:'c1',texto:'Importa la muestra sintética del reporte de CERI',ir:{view:'pre'}},{id:'c2',texto:'Revisa los avisos de calidad de la vista previa',ir:{view:'pre'}},{id:'c3',texto:'Promueve un preregistro a evento',ir:{view:'pre'}},{id:'c4',texto:'Completa el origen de EVT-0008',ir:{ref:'EVT-0008',tab:'resumen'}},{id:'c5',texto:'Comenta en la hoja qué falta del reporte de CERI',ir:{view:'hoja'}}],
+ tel:[{id:'t1',texto:'Abre EVT-0001 y mira qué botones tienes habilitados',ir:{ref:'EVT-0001',tab:'resumen'}},{id:'t2',texto:'Revisa la matriz de permisos: ¿qué debería tocarte?',ir:{view:'perm'}},{id:'t3',texto:'Cuéntanos en la hoja cómo trabaja Teléfono Comunitario',ir:{view:'hoja'}}],
+ policia:[{id:'p1',texto:'En EVT-0004 registra la parte informativa',ir:{ref:'EVT-0004',tab:'piezas'}},{id:'p2',texto:'En EVT-0004 marca «Sin novedad» en las piezas donde no hubo nada',ir:{ref:'EVT-0004',tab:'piezas'}},{id:'p3',texto:'En EVT-0005 registra otro vehículo por aseguramiento',ir:{ref:'EVT-0005',tab:'piezas'}},{id:'p4',texto:'En EVT-0008 registra un quejoso o denunciante',ir:{ref:'EVT-0008',tab:'piezas'}},{id:'p5',texto:'Comenta en cualquier campo que falte o sobre (icono de globo)',ir:{ref:'EVT-0004',tab:'piezas'}},{id:'p6',texto:'Cierra la sesión llenando tu hoja de validación',ir:{view:'hoja'}}],
+ coord:[{id:'o1',texto:'Agrega un agente a EVT-0008 con sus roles',ir:{ref:'EVT-0008',tab:'agentes'}},{id:'o2',texto:'Captura la parte informativa de EVT-0008',ir:{ref:'EVT-0008',tab:'piezas'}},{id:'o3',texto:'Dinos en la hoja si Coordinación es área o unidad',ir:{view:'hoja'}}],
+ barandilla:[{id:'b1',texto:'En EVT-0004 captura la pertenencia de un detenido',ir:{ref:'EVT-0004',tab:'piezas'}},{id:'b2',texto:'Captura la condición del detenido (datos sensibles)',ir:{ref:'EVT-0004',tab:'piezas'}},{id:'b3',texto:'Captura el traslado de un detenido',ir:{ref:'EVT-0004',tab:'piezas'}},{id:'b4',texto:'Dinos en la hoja qué de esto ya captura SIPROB',ir:{view:'hoja'}}],
+ juridico:[{id:'j1',texto:'En EVT-0004 revisa y firma el IPH por delito federal',ir:{ref:'EVT-0004',tab:'piezas'}},{id:'j2',texto:'En EVT-0005 crea un IPH y asígnalo al aseguramiento sin detenido',ir:{ref:'EVT-0005',tab:'piezas'}},{id:'j3',texto:'Reabre EVT-0007 (ya está cerrado)',ir:{ref:'EVT-0007',tab:'resumen'}},{id:'j4',texto:'Comenta en la hoja qué campos del IPH faltan',ir:{view:'hoja'}}],
+ plataforma:[{id:'l1',texto:'Compara y fusiona EVT-0003 con EVT-0001',ir:{view:'conc'}},{id:'l2',texto:'Cierra EVT-0006, que ya está completo',ir:{ref:'EVT-0006',tab:'resumen'}},{id:'l3',texto:'Prueba «Deshacer» después de cerrar',ir:{ref:'EVT-0006',tab:'resumen'}},{id:'l4',texto:'Dinos en la hoja cómo quieren conciliar y en cuánto tiempo',ir:{view:'hoja'}}],
+ analista:[{id:'a1',texto:'Abre el tablero y revisa los números',ir:{view:'tablero'}},{id:'a2',texto:'Imprime la ficha de EVT-0001',ir:{ref:'EVT-0001',tab:'resumen'}},{id:'a3',texto:'Dinos en la hoja qué indicadores necesitas',ir:{view:'hoja'}}]};
+let SES=null;
+const sesLoad=()=>{try{return JSON.parse(localStorage.getItem('pimsy_sesion')||'null')}catch(e){return null}};
+const sesSave=()=>{try{localStorage.setItem('pimsy_sesion',JSON.stringify(SES))}catch(e){}};
+function renderSesion(){
+  const el=$('#sesion');if(!SES||!SES.activa){el.hidden=true;el.innerHTML='';return}
+  const T=TAREAS[SES.dept],hechas=T.filter(t=>SES.hechas[t.id]).length;
+  el.innerHTML=UO.taskPanel({titulo:'Sesión: '+DEPTS[SES.dept].n,tareas:T.map(t=>({id:t.id,texto:t.texto,hecha:!!SES.hechas[t.id]})),hechas,total:T.length,colapsado:!!SES.oculto});el.hidden=false}
+function irA(ir){
+  if(ir.ref){const e=S.eventos.find(z=>z.ref===ir.ref);if(!e)return toast('Ese evento ya no existe.',1);cur=e.id;view='det';tab=ir.tab||'resumen';seenVer=e.version}else{view=ir.view}
+  render();scrollTo(0,0)}
+function iniciarSesion(k){
+  seed();dept=k;try{localStorage.setItem('pimsy_dept',k)}catch(e){}
+  SES={activa:true,dept:k,hechas:{},oculto:false};sesSave();irA(TAREAS[k][0].ir);toast('Sesión iniciada. Sigue la lista de tareas.')}
+
 /* ===== Clics y teclado ===== */
 document.addEventListener('click',x=>{
+  const cm=x.target.closest('[data-com]');if(cm){abrirComentario(cm.dataset.com,cm.dataset.etq);return}
+  if(!x.target.closest('.gsearch'))$('#gres').hidden=true;
   const mz=x.target.closest('[data-matiz]');if(mz){THEME.set({hue:+mz.dataset.matiz});return}
   const t=x.target.closest('[data-act]');if(!t||t.disabled)return;
   const m=t.closest('details.menu');if(m)m.open=false;
@@ -581,17 +691,25 @@ document.addEventListener('click',x=>{
   switch(a){
    case 'ficha':return go('ficha');
    case 'tab':tab=k;return render();
+   case 'abrirRes':{$('#gres').hidden=true;$('#gq').value='';cur=id;view='det';tab=k||'resumen';const z=ev();seenVer=z?z.version:0;render();return scrollTo(0,0)}
+   case 'comGuardar':return guardarComentario(false);
+   case 'comBorrar':return guardarComentario(true);
+   case 'comDel':{const o=comLoad();delete o[k];comSave(o);return render()}
+   case 'sesion':return elegirRol(false,'sesion');
+   case 'sesionToggle':SES.oculto=!SES.oculto;sesSave();return renderSesion();
+   case 'sesionFin':SES.activa=false;sesSave();view='hoja';render();return toast('Sesión terminada. Llena tu hoja de validación.');
+   case 'tareaIr':{const t=TAREAS[SES.dept].find(z=>z.id===k);return t&&irA(t.ir)}
    case 'limpiar':FL={q:'',st:'',mio:false,listo:false,dup:false};return render();
    case 'kpi':{const [f,v]=k.split(':');if(f==='todos')FL={q:'',st:'',mio:false,listo:false,dup:false};else if(f==='st')FL.st=FL.st===v?'':v;else FL[f]=!FL[f];return render()}
    case 'heroOff':try{localStorage.setItem('pimsy_hero','1')}catch(x){}return render();
-   case 'nav':if(k==='reset')return confirmar('Reiniciar datos','Se borran los eventos que capturaste y vuelven los 3 de ejemplo. Tu hoja de validación no se borra.','Reiniciar',()=>{try{localStorage.removeItem('pimsy_estado2')}catch(x){}seed();view='eventos';cur=null;render();toast('Datos de ejemplo restaurados.')},true);return go(k);
+   case 'nav':if(k==='reset')return confirmar('Reiniciar datos','Se borran los eventos que capturaste y vuelven los 3 de ejemplo. Tu hoja de validación no se borra.','Reiniciar',()=>{try{localStorage.removeItem('pimsy_estado3')}catch(x){}seed();view='eventos';cur=null;render();toast('Datos de ejemplo restaurados.')},true);return go(k);
    case 'abrir':return go('det',id);
    case 'otra':e.version++;aud(e,'UPDATE','evento','Edición simulada de otra área');return toast('Otra área guardó. Tu pantalla ya está desactualizada: intenta guardar.');
-   case 'nuevoA':return abrirForm({titulo:'Nuevo evento (Ruta A, origen primero)',e:null,fields:EVENTO,values:{municipio:'Juárez',entidad:'Chihuahua'},
+   case 'nuevoA':return abrirForm({entKey:'evento',titulo:'Nuevo evento (Ruta A, origen primero)',e:null,fields:EVENTO,values:{municipio:'Juárez',entidad:'Chihuahua'},
      aviso:'Basta con tipo de origen y fecha: el resto lo pueden completar después las áreas autorizadas (registro mínimo).',okLabel:'Crear evento',ok:vals=>crearA(vals)});
    case 'nuevoB':{const n=mkEv('B');n.estado='borrador_sin_origen';aud(n,'INSERT','evento','Ruta B: provisional');S.eventos.push(n);go('det',n.id);return toast(`${n.ref} creado en borrador sin origen.`)}
    case 'promover':{const p=S.pre.find(z=>z.folio===k);return crearA(desdePre(p),p)}
-   case 'origen':return abrirForm({titulo:'Datos del evento, origen y ubicación',e,fields:EVENTO,values:JSON.parse(JSON.stringify(e.origen)),ok:vals=>{
+   case 'origen':return abrirForm({entKey:'evento',titulo:'Datos del evento, origen y ubicación',e,fields:EVENTO,values:JSON.parse(JSON.stringify(e.origen)),ok:vals=>{
        if(vals.folio_ceri&&S.eventos.some(z=>z.id!==e.id&&z.origen.folio_ceri===vals.folio_ceri))return toast('Folio CERI duplicado: se rechaza (REQ-EVT-01).',1);
        mut(e,['crearA','levantarB'],'Origen y ubicación actualizados',()=>{e.origen=vals})}});
    case 'agente':return agenteForm(e,null);
@@ -619,6 +737,7 @@ document.addEventListener('click',x=>{
    case 'anular':{if(e.estado==='anulado')return;
      return confirmar('Anular evento',`${e.ref} quedará anulado por error. Quedará registrado en la auditoría.`,'Anular',()=>{snapUndo();e.estado='anulado';e.version++;aud(e,'UPDATE','evento','Evento anulado (error)');render();toast('Evento anulado.','ok',UNDO)},true)}
    case 'expJson':{const h=hojaLoad(dept),o={departamento:DEPTS[dept].n,exportado:now(),hoja:Object.fromEntries(Object.entries(h).filter(([k])=>!k.startsWith('Q-')&&!k.startsWith('rev'))),
+       campos:Object.entries(comLoad()).map(([k,v])=>({...infoCampo(k),comentario:v})),
        formularios:Object.keys(ENT).filter(en=>h['rev_'+en]||h['revn_'+en]).map(en=>({formulario:ENT[en].n,estado:h['rev_'+en]||'',comentario:h['revn_'+en]||''})),
        preguntas:QDEPT[dept].map(q=>({id:q,pregunta:Q[q],respuesta:h[q]||''}))};
      const l=document.createElement('a');l.href=URL.createObjectURL(new Blob([JSON.stringify(o,null,2)],{type:'application/json'}));l.download=`hoja_${dept}.json`;l.click();return}
@@ -632,25 +751,31 @@ document.addEventListener('click',x=>{
    case 'tourFin':return tourFin();
   }});
 document.addEventListener('input',x=>{
+  if(x.target.id==='gq'){mostrarResultados();return}
   const kb=x.target.dataset.knob;if(kb){const v=THEME.set({[kb]:+x.target.value}),o=document.getElementById('o_'+kb);if(o)o.textContent=v[kb]+(THEME.knobs.find(k=>k.id===kb).unidad||'');return}
   const f=x.target.dataset.f;if(f){FL[f]=x.target.type==='checkbox'?x.target.checked:x.target.value;$('#rows').innerHTML=filas();return}
   const k=x.target.dataset.h;if(!k)return;const h=hojaLoad(dept);h[k]=x.target.value;hojaSave(dept,h)});
 document.addEventListener('change',x=>{const f=x.target.dataset.f;
+  if(x.target.dataset.tarea){SES.hechas[x.target.dataset.tarea]=x.target.checked;sesSave();renderSesion();return}
   if(f==='ceri'){const fl=x.target.files[0];if(!fl)return;fl.arrayBuffer().then(b=>leerArchivoCeri(b,fl.name)).catch(er=>toast(er.message||'No se pudo leer el archivo.',1));x.target.value='';return}
   if(f==='imp'){const fl=x.target.files[0];if(!fl)return;fl.text().then(t=>{try{const g=JSON.parse(t);if(!g.S||!Array.isArray(g.S.eventos))throw new Error('x');S=g.S;view='eventos';cur=null;render();toast('Datos importados.')}catch(er){toast('El archivo no es un respaldo válido de la maqueta.',1)}});return}if(f==='st'||f==='mio'){FL[f]=x.target.type==='checkbox'?x.target.checked:x.target.value;$('#rows').innerHTML=filas()}});
 document.addEventListener('keydown',x=>{
   const t=x.target;
-  if(x.key==='/'&&view==='eventos'&&!/INPUT|TEXTAREA|SELECT/.test(t.tagName)&&!$('#dlg').open){x.preventDefault();$('#q')?.focus()}
+  if((x.key==='/'&&!/INPUT|TEXTAREA|SELECT/.test(t.tagName)&&!$('#dlg').open&&!$('#dlg2').open)||((x.ctrlKey||x.metaKey)&&x.key.toLowerCase()==='k')){x.preventDefault();$('#gq').focus();$('#gq').select()}
+  if(t.id==='gq'){if(x.key==='Escape'){$('#gres').hidden=true;t.blur()}if(x.key==='Enter'){const b=$('#gres .mi');if(b)b.click()}}
+  if((x.ctrlKey||x.metaKey)&&x.key==='Enter'&&$('#dlg').open&&window.__fa){x.preventDefault();window.__fa.enviar()}
   if(x.key==='Enter'&&t.matches&&t.matches('tr[data-act]'))t.click();
   if(x.key==='Escape'&&!$('#tour').hidden)tourFin()});
 $('#dept').innerHTML=DK.map(k=>`<option value="${k}">${DEPTS[k].n}</option>`).join('');
 $('#dept').onchange=x=>{dept=x.target.value;try{localStorage.setItem('pimsy_dept',dept)}catch(e){}render()};
 
 /* ===== Primera visita: elegir quién eres ===== */
-function elegirRol(primera){
+function elegirRol(primera,modo){
   const d=$('#dlg');d.className='big';d.oncancel=null;
-  d.innerHTML=UO.dialogShell({titulo:'¿Quién eres?',formAttrs:'method="dialog"',cuerpoHtml:`<p class="small mut" style="margin:var(--space-3) var(--space-5)">Elige tu departamento. Verás solo lo que te toca; después puedes cambiarlo arriba cuando quieras.</p>${UO.roleGrid(DK.map(k=>({clave:k,titulo:DEPTS[k].n,texto:ROL[k],color:DCOL[k]})))}`});
-  d.querySelectorAll('[data-rol]').forEach(b=>b.onclick=()=>{dept=b.dataset.rol;try{localStorage.setItem('pimsy_dept',dept)}catch(x){}d.close();render();if(primera){try{if(localStorage.getItem('pimsy_tour')!=='1')setTimeout(()=>tour(0),300)}catch(x){}}});
+  d.innerHTML=UO.dialogShell({titulo:modo==='sesion'?'¿Con qué departamento es la sesión?':'¿Quién eres?',formAttrs:'method="dialog"',cuerpoHtml:`<p class="small mut" style="margin:var(--space-3) var(--space-5)">${modo==='sesion'?'Se arma una lista de tareas para ese departamento.':'Elige tu departamento. Verás solo lo que te toca; después puedes cambiarlo arriba cuando quieras.'}</p>${UO.roleGrid(DK.map(k=>({clave:k,titulo:DEPTS[k].n,texto:ROL[k],color:DCOL[k]})))}`});
+  d.querySelectorAll('[data-rol]').forEach(b=>b.onclick=()=>{
+    if(modo==='sesion'){const k=b.dataset.rol;d.close();return confirmar('Empezar sesión de validación',`Vas a probar la maqueta como <b>${DEPTS[k].n}</b> con una lista de tareas. Se restauran los eventos de ejemplo para que todos vean lo mismo (se pierde lo que hayas capturado).`,'Empezar',()=>iniciarSesion(k))}
+    dept=b.dataset.rol;try{localStorage.setItem('pimsy_dept',dept)}catch(x){}d.close();render();if(primera){try{if(localStorage.getItem('pimsy_tour')!=='1')setTimeout(()=>tour(0),300)}catch(x){}}});
   d.showModal()}
 /* ===== Recorrido guiado y tema ===== */
 const TOUR=[['#dept','Elige quién eres','Cambia de departamento aquí. Cada uno ve y puede hacer cosas distintas.'],
@@ -669,11 +794,12 @@ function tour(i){
   setTimeout(()=>{const r=el.getBoundingClientRect(),w=Math.min(320,innerWidth-24);
     b.style.left=Math.max(12,Math.min(r.left,innerWidth-w-12))+'px';
     const abajo=r.bottom+12+b.offsetHeight<innerHeight;b.style.top=(abajo?r.bottom+12:Math.max(12,r.top-b.offsetHeight-12))+'px'},250)}
-$('#design').innerHTML=ic('palette');$('#help').innerHTML=ic('help');$('#help').onclick=()=>tour(0);
+$('#sesionBtn').innerHTML=ic('tasks');$('#design').innerHTML=ic('palette');$('#help').innerHTML=ic('help');$('#help').onclick=()=>tour(0);
 $('#theme').onclick=()=>theme(SCHEMES[(SCHEMES.indexOf(THEME.scheme())+1)%3]);
 theme(THEME.scheme());
 
-try{const g=JSON.parse(localStorage.getItem('pimsy_estado2')||'null');if(g&&g.S){S=g.S;Object.assign(AGENTES_MONGO,g.AGENTES_MONGO)}else seed()}catch(x){seed()}
+try{const g=JSON.parse(localStorage.getItem('pimsy_estado3')||'null');if(g&&g.S){S=g.S;Object.assign(AGENTES_MONGO,g.AGENTES_MONGO)}else seed()}catch(x){seed()}
 try{const dd=localStorage.getItem('pimsy_dept');if(dd&&DEPTS[dd])dept=dd}catch(x){}
+SES=sesLoad();
 render();
 try{if(!localStorage.getItem('pimsy_dept'))setTimeout(()=>elegirRol(true),300);else if(localStorage.getItem('pimsy_tour')!=='1')setTimeout(()=>tour(0),400)}catch(x){}

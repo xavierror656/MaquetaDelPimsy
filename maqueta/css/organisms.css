@@ -95,3 +95,19 @@ dialog.big .alert,dialog.big .rp,dialog.big .chips,dialog.big>form>p{margin-left
 .fp h2{margin:var(--space-5) 0 var(--space-2)}
 .fp .ficha{margin-bottom:var(--space-3)}
 .hoja textarea{width:100%;min-height:4.4rem;margin-bottom:var(--space-2)}
+
+/* Búsqueda global (en el encabezado) */
+.gsearch{position:relative;flex:1;min-width:11rem;max-width:26rem}
+.gsearch input{width:100%;background:var(--color-field-on-bar);color:var(--color-field-on-bar-text);border:0;border-left:var(--accent-w) solid var(--dc)}
+.gres{position:absolute;left:0;right:0;top:calc(100% + var(--space-1));z-index:var(--z-menu);max-height:70vh;overflow:auto;padding:var(--space-2);background:var(--color-surface);color:var(--color-text);border:var(--border-w) solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-md)}
+.gres-l{list-style:none;margin:0;padding:0}
+.gres-l .mi{display:flex;flex-wrap:wrap;gap:var(--space-2);align-items:center;width:100%;height:auto;padding:var(--space-2) var(--space-3);text-align:left}
+.gres-l .mi .small{flex-basis:100%}
+.gres-v{margin:var(--space-3)}
+
+/* Panel flotante de la sesión de validación */
+.sesion{position:fixed;left:var(--space-4);bottom:var(--space-4);z-index:var(--z-toast);width:min(24rem,92vw)}
+.tp{padding:var(--space-3) var(--space-4);background:var(--color-surface);color:var(--color-text);border:var(--border-w) solid var(--color-border);border-top:var(--border-w-strong) solid var(--dc);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg)}
+.tp-h{display:flex;align-items:center;gap:var(--space-2)}
+.tp-c{margin:0 0 var(--space-2)}
+.tp-l{list-style:none;margin:0 0 var(--space-3);padding:0;max-height:40vh;overflow:auto}
