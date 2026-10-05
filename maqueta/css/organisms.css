@@ -111,3 +111,14 @@ dialog.big .alert,dialog.big .rp,dialog.big .chips,dialog.big>form>p{margin-left
 .tp-h{display:flex;align-items:center;gap:var(--space-2)}
 .tp-c{margin:0 0 var(--space-2)}
 .tp-l{list-style:none;margin:0 0 var(--space-3);padding:0;max-height:40vh;overflow:auto}
+
+/* Tablero */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(9.4rem,1fr));gap:var(--space-3);margin-bottom:var(--space-4)}
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(21rem,1fr));gap:var(--space-4)}
+.charts>.card{margin-bottom:0}
+
+/* Mapa */
+.mapa{height:18rem;overflow:hidden;border:var(--border-w) solid var(--color-border);border-radius:var(--radius-md)}
+.mapa.leaflet-container{width:100%;background:var(--color-brand-soft);font-family:var(--font-sans)}
+.mapa-pin{background:transparent;border:0}
+.pin{display:block;width:1.25rem;height:1.25rem;background:var(--dc);border:var(--border-w-strong) solid var(--color-surface);border-radius:50% 50% 50% 0;box-shadow:var(--shadow-md);transform:rotate(-45deg)}

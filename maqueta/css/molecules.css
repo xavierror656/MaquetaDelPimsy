@@ -118,3 +118,20 @@ ul.chk li{display:flex;gap:var(--space-2);align-items:flex-start;padding:var(--s
 /* Tarea de sesión */
 .tk{display:flex;gap:var(--space-2);align-items:center;justify-content:space-between;padding:var(--space-2) 0;border-top:var(--border-w) solid var(--color-border)}
 .tk.hecha span{text-decoration:line-through;color:var(--color-text-muted)}
+
+/* Cifra destacada */
+.stat{display:flex;flex-direction:column;gap:2px;padding:var(--space-3) var(--space-4);background:var(--color-surface);border:var(--border-w) solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm)}
+.stat b{font-size:var(--text-display);line-height:var(--leading-tight)}
+.stat span{font-size:var(--text-sm);color:var(--color-text-muted)}
+
+/* Gráfica de barras: marcas delgadas, 4 px redondeadas solo en el extremo de datos, ejes recesivos */
+.chart h3{margin-bottom:var(--space-1)}
+.bc{display:grid;gap:var(--space-2);margin-top:var(--space-3)}
+.bc-row{display:grid;grid-template-columns:minmax(6rem,11rem) 1fr 2.5rem;align-items:center;gap:var(--space-3);border-radius:var(--radius-sm)}
+.bc-l{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--text-md);color:var(--color-text)}
+.bc-t{display:flex;align-items:center;height:1.5rem;border-left:var(--border-w) solid var(--color-border)}
+.bc-bar{position:relative;display:block;height:100%;background:var(--chart-mark);border-radius:0 var(--radius-sm) var(--radius-sm) 0}
+.bc-bar::after{content:attr(data-tip);position:absolute;left:calc(100% + var(--space-2));top:50%;z-index:var(--z-menu);display:none;transform:translateY(-50%);padding:var(--space-1) var(--space-2);white-space:nowrap;font-size:var(--text-sm);color:var(--color-text);background:var(--color-surface);border:var(--border-w) solid var(--color-border);border-radius:var(--radius-sm);box-shadow:var(--shadow-md)}
+.bc-row:hover .bc-bar::after,.bc-row:focus .bc-bar::after{display:block}
+.bc-row:hover,.bc-row:focus{background:var(--color-brand-soft)}
+.bc-v{text-align:right;font-variant-numeric:tabular-nums;color:var(--color-text)}

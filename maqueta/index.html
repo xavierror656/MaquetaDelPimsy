@@ -6,6 +6,7 @@
 <title>PIMSy · Maqueta</title>
 <meta name="description" content="Maqueta navegable de PIMSy (SSPM Ciudad Juárez) con datos sintéticos, para validar el flujo con cada departamento.">
 <meta name="theme-color" content="#1d4ed8">
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231d4ed8'/%3E%3Cpath d='M32 10 14 17v13c0 11 7 19 18 24 11-5 18-13 18-24V17z' fill='white'/%3E%3Ctext x='32' y='40' font-size='22' font-family='Arial' font-weight='700' text-anchor='middle' fill='%231d4ed8'%3EP%3C/text%3E%3C/svg%3E">
 <script>try{var p=JSON.parse(localStorage.getItem('pimsy_tema')||'"auto"');document.documentElement.dataset.theme=p==='auto'?(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'):p}catch(e){}</script>
 <link rel="stylesheet" href="css/theme.css">
@@ -21,7 +22,7 @@
   <h1>PIMSy · Maqueta</h1>
   <label><span class="lt"><b>¿Quién eres?</b> Soy del departamento:</span> <select id="dept" aria-label="Departamento"></select></label>
   <div class="gsearch"><input id="gq" type="search" placeholder="Buscar en todo  ( / )" aria-label="Buscar en todo" autocomplete="off"><div id="gres" class="gres" hidden></div></div>
-  <div class="hr"><button class="ghost" id="sesionBtn" data-act="sesion" aria-label="Sesión de validación" title="Sesión de validación"></button><button class="ghost" id="design" data-act="diseno" aria-label="Personalizar el diseño" title="Diseño"></button><button class="ghost" id="help" aria-label="Ver recorrido de ayuda" title="Recorrido de ayuda"></button><button class="ghost" id="theme" aria-label="Cambiar tema"></button></div>
+  <div class="hr"><button class="ghost" id="instalar" data-act="instalar" aria-label="Instalar la maqueta" title="Instalar la maqueta" hidden></button><button class="ghost" id="sesionBtn" data-act="sesion" aria-label="Sesión de validación" title="Sesión de validación"></button><button class="ghost" id="design" data-act="diseno" aria-label="Personalizar el diseño" title="Diseño"></button><button class="ghost" id="help" aria-label="Ver recorrido de ayuda" title="Recorrido de ayuda"></button><button class="ghost" id="theme" aria-label="Cambiar tema"></button></div>
   <nav id="nav" aria-label="Secciones"></nav>
 </header>
 <main id="app" tabindex="-1"></main>

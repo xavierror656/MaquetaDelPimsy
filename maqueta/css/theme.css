@@ -89,6 +89,7 @@
   --color-brand-bar-from:hsl(var(--brand-h) 70% 20%);
   --color-brand-bar-mid:hsl(var(--brand-h) var(--brand-s) 40%);
   --color-brand-bar-to:var(--sky-500);
+  --chart-mark:hsl(var(--brand-h) var(--brand-s) 45%);   /* marca de gráfica: un solo matiz, validado */
   --color-field-on-bar:var(--slate-0);
   --color-field-on-bar-text:var(--slate-950);
   --color-glass:hsl(0 0% 100% / .14);
@@ -204,5 +205,6 @@ html[data-theme=dark]{
   --color-reopen:hsl(27 95% 72%);
   --color-reopen-soft:hsl(15 70% 14%);
   --color-reopen-border:hsl(14 65% 28%);
+  --chart-mark:hsl(var(--brand-h) var(--brand-s) 62%);
   --shadow-sm:none;
 }

@@ -326,12 +326,14 @@ function abrirDiseno(){
 function render(){
   try{localStorage.setItem('pimsy_estado3',JSON.stringify({S,AGENTES_MONGO}))}catch(x){}
   $('#dept').value=dept;document.documentElement.style.setProperty('--dc',DCOL[dept]);
-  const tabs=[['eventos','Eventos'],['pre','Preregistros CERI'],['conc','Conciliación'],['guia','Guía paso a paso'],['perm','Permisos'],['hoja','Hoja de validación'],['aud','Auditoría'],['reset','Reiniciar datos']];
+  const tabs=[['eventos','Eventos'],['pre','Preregistros CERI'],['conc','Conciliación'],['tablero','Tablero'],['guia','Guía paso a paso'],['perm','Permisos'],['hoja','Hoja de validación'],['aud','Auditoría'],['reset','Reiniciar datos']];
   $('#nav').innerHTML=UO.navBar({items:tabs,actual:view==='det'?'eventos':view,act:'nav'});
   const dd=DEPTS[dept];
   const head=`<p class="legend noprint">Maqueta con datos 100% sintéticos. Departamento activo: <b>${dd.n}</b>${dd.q?pv(dd.q):''}. Lo que no le corresponde aparece deshabilitado con su leyenda. Las etiquetas ${pv('Q-xx')} marcan lo no decidido. Los catálogos marcados «ejemplo» son ficticios.</p>`;
+  if(MAPA){MAPA.remove();MAPA=null}
   renderSesion();
-  $('#app').innerHTML=head+({eventos:vLista,det:vDetalle,ficha:vFicha,guia:vGuia,pre:vPre,conc:vConc,perm:vPerm,hoja:vHoja,aud:vAud}[view])();
+  $('#app').innerHTML=head+({eventos:vLista,det:vDetalle,ficha:vFicha,tablero:vTablero,guia:vGuia,pre:vPre,conc:vConc,perm:vPerm,hoja:vHoja,aud:vAud}[view])();
+  if(view==='det'&&tab==='resumen')montarMapa();
 }
 function vFicha(){
   const e=ev();if(!e)return '';const o=e.origen;
@@ -432,6 +434,7 @@ function vDetalle(){
     ${B('Completar / editar origen','origen',['crearA','levantarB'])}</div>
    <div class="card"><h3>Resumen automático <span class="small mut">(se calcula solo, no se captura)</span></h3><div class="ind">
     ${indicadores(e).map(([k,v])=>`<div>${v?`<span class="ok">${ic('check')}</span>`:`<span class="mut">${ic('x')}</span>`} ${IND[k]}</div>`).join('')}<div><b>Piezas que faltan: ${pendientes(e)}</b></div></div></div></div>
+  ${UO.mapCard({titulo:'Ubicación en el mapa',ayuda:'Haz clic en el mapa o arrastra el pin para corregir el punto. Siempre se puede editar a mano; el catálogo de colonias prevalece. '+pv('Q-30'),botonesHtml:B('Guardar ubicación','mapaGuardar',['crearA','levantarB'],'id="mapaGuardar"'),estado:o.latitud&&o.longitud?`Punto actual: ${o.latitud}, ${o.longitud}`:'Este evento todavía no tiene punto. Haz clic en el mapa para ponerlo.'})}
   <div class="card" style="margin-top:var(--space-4)"><h3>¿Se puede cerrar? ${listo?`${UA.badge('registrado',ic('check')+' Sí')}`:UA.badge('pendiente','Aún no')}</h3><ul class="chk">${chk.map(x=>`<li class="${x.ok?'ok':'no'}">${ic(x.ok?'check':'x')}<span>${x.t}${x.q?pv(x.q):''}</span></li>`).join('')}</ul>
    <p class="small mut">Cierra solo Plataforma; reabre solo Jurídico. ${listo?'':'Cerrar queda bloqueado hasta cumplir todas.'}</p></div>`,
    piezas:`<p class="small mut">Cada área marca si hubo o no. Ausencia no es inexistencia: «Sin novedad» no exige registros; «Registrado» exige al menos uno. Las entidades con etiqueta ${pv('Q-xx')} se muestran para validarlas con el área; no son definitivas.</p>${Object.keys(COMP).map(k=>pieza(e,k)).join('')}`,
@@ -535,6 +538,50 @@ function vGuia(){
   return `<div class="card"><h2>El camino de un evento</h2><ol class="ciclo">${CICLO.map(([t,x])=>`<li><b>${t}</b><div class="small mut">${x}</div></li>`).join('')}</ol></div>
   ${orden.map((k,i)=>{const g=GUIA[k];return `<details class="card gd" ${i===0?'open':''}><summary><b>${g.n}</b>${k===dept?'<span class="b abierto">tu departamento</span>':''}</summary><ol class="pasos-l">${g.pasos.map(([t,x,go])=>`<li><b>${t}</b><div class="small mut">${x}</div>${go?`<button class="sec sm" data-act="nav" data-k="${go}">Ir a ${{pre:'Preregistros',eventos:'Eventos',conc:'Conciliación',hoja:'la hoja de validación',perm:'Permisos'}[go]}</button>`:''}</li>`).join('')}</ol></details>`}).join('')}
   <div class="card"><h2>Preguntas frecuentes</h2>${FAQ.map(([q,r])=>`<details class="fi"><summary><b>${q}</b></summary><p>${r}</p></details>`).join('')}<p><button class="sec" data-act="tour">Repetir el recorrido guiado</button></p></div>`}
+/* ===== Tablero (Analista) ===== */
+function contar(lista,clave){const m={};lista.forEach(x=>{const k=clave(x);if(k)m[k]=(m[k]||0)+1});return Object.entries(m).map(([etiqueta,valor])=>({etiqueta,valor})).sort((p,q)=>q.valor-p.valor)}
+function vTablero(){
+  const todos=S.eventos,vivos=todos.filter(e=>!['cerrado','anulado'].includes(e.estado)),hijos=k=>todos.flatMap(e=>e.comp[k].hijos);
+  const cifras=[{valor:todos.length,etiqueta:'Eventos'},{valor:vivos.length,etiqueta:'Activos'},{valor:todos.filter(e=>e.estado==='cerrado').length,etiqueta:'Cerrados'},{valor:vivos.filter(e=>cierre(e).every(x=>x.ok)).length,etiqueta:'Listos para cerrar'},
+    {valor:vivos.reduce((n,e)=>n+pendientes(e),0),etiqueta:'Piezas por registrar'},{valor:hijos('detencion').filter(h=>h.ent==='detenido').length,etiqueta:'Detenidos'},{valor:hijos('aseguramiento').filter(h=>['arma','sustancia','objeto','vehiculo'].includes(h.ent)).length,etiqueta:'Bienes'},{valor:S.pre.filter(p=>!p.evento).length,etiqueta:'Preregistros CERI'}];
+  const orden=['borrador_sin_origen','abierto','en_proceso','cerrado','reabierto','anulado'];
+  const porEstado=orden.map(k=>({etiqueta:ETQ[k].replace(/<[^>]+>/g,'').trim(),valor:todos.filter(e=>e.estado===k).length})).filter(d=>d.valor);
+  const pendPorPieza=Object.keys(COMP).map(k=>({etiqueta:COMP[k].n,valor:vivos.filter(e=>estC(e.comp[k])==='pendiente').length})).filter(d=>d.valor).sort((p,q)=>q.valor-p.valor);
+  const bienes=['arma','sustancia','objeto','vehiculo'].map(k=>({etiqueta:ENT[k].n,valor:hijos('aseguramiento').filter(h=>h.ent===k).length})).filter(d=>d.valor);
+  const legal=[['delito','Delitos'],['falta','Faltas administrativas'],['orden','Órdenes de aprehensión']].map(([k,l])=>({etiqueta:l,valor:hijos('detencion').filter(h=>h.ent===k).length})).filter(d=>d.valor);
+  return `<div class="card noprint"><h2>Tablero</h2><p class="small mut">Resumen de los eventos capturados en esta maqueta (datos sintéticos). Pasa el cursor o enfoca una barra para ver su valor; cada gráfica tiene su tabla.</p></div>`+
+    UO.dashboard({cifras,graficasHtml:[
+      UM.barChart({titulo:'Eventos por estado',datos:porEstado,unidad:'eventos'}),
+      UM.barChart({titulo:'Eventos por distrito',datos:contar(todos,e=>e.origen.distrito),unidad:'eventos'}),
+      UM.barChart({titulo:'Piezas por registrar, por tipo',subtitulo:'Solo eventos activos.',datos:pendPorPieza,unidad:'eventos'}),
+      UM.barChart({titulo:'Bienes por tipo',datos:bienes,unidad:'bienes'}),
+      UM.barChart({titulo:'Delitos, faltas y órdenes',datos:legal,unidad:'registros'}),
+      UM.barChart({titulo:'Motivos más frecuentes',subtitulo:'Los 5 primeros.',datos:contar(todos,e=>motCorto(e.origen.motivo)).slice(0,5),unidad:'eventos'})].join('')})}
+
+/* ===== Comparar un provisional con el evento real antes de fusionar ===== */
+function cmpDatos(P,C){
+  const rellena=['denominacion','motivo'],vacio=v=>v===undefined||v===null||v==='';
+  const filasO=EVENTO.filter(f=>f.k&&f.t!=='calc').map(f=>{const va=P.origen[f.k],vb=C.origen[f.k];if(vacio(va)&&vacio(vb))return null;
+    const A_=vacio(va)?'—':String(valTxt(f,va,P)),B_=vacio(vb)?'—':String(valTxt(f,vb,C));
+    let estado='sin_novedad',resultado='Igual';
+    if(!vacio(va)&&vacio(vb)){if(rellena.includes(f.k)){estado='registrado';resultado='Se completa en el evento real'}else{estado='pendiente';resultado='No pasa (el real queda vacío)'}}
+    else if(vacio(va)&&!vacio(vb)){resultado='Solo en el evento real'}
+    else if(String(va)!==String(vb)){estado='en_proceso';resultado='Se conserva el del evento real'}
+    return {etiqueta:f.l,a:A_,b:B_,estado,resultado}}).filter(Boolean);
+  if(P.narrativa||C.narrativa)filasO.push({etiqueta:'Narrativa',a:P.narrativa||'—',b:C.narrativa||'—',estado:P.narrativa&&!C.narrativa?'registrado':'sin_novedad',resultado:P.narrativa&&!C.narrativa?'Se completa en el evento real':'Se conserva la del evento real'});
+  const filasP=Object.keys(COMP).map(k=>{const p=P.comp[k],c=C.comp[k],n=p.hijos.length;
+    let estado='sin_novedad',resultado='Sin cambio';
+    if(n){estado='registrado';resultado=`Pasan ${n} registro${n===1?'':'s'} al evento real`}else if(p.estado==='sin_novedad'&&estC(c)==='pendiente'){estado='registrado';resultado='Se marca «sin novedad»'}
+    return {etiqueta:COMP[k].n,a:`${n} (${estC(p).replace('_',' ')})`,b:`${c.hijos.length} (${estC(c).replace('_',' ')})`,estado,resultado}});
+  const filasA=P.agentes.map(a=>{const ya=C.agentes.some(x=>x.id===a.id||(x.emp&&x.emp===a.emp));return {etiqueta:nomAg(a),a:(a.roles||[]).join(', ')||'sin rol',b:ya?'ya está':'—',estado:ya?'sin_novedad':'registrado',resultado:ya?'Ya estaba en el evento real':'Pasa al evento real'}});
+  return [{titulo:'Datos del evento',col0:'Campo',filas:filasO},{titulo:'Piezas',col0:'Pieza',filas:filasP},{titulo:'Agentes',col0:'Agente',filas:filasA}].filter(s=>s.filas.length)}
+function abrirComparacion(pid,cid){
+  const P=S.eventos.find(z=>z.id===pid),C=S.eventos.find(z=>z.id===cid);if(!P||!C)return;
+  const d=$('#dlg');d.className='big';d.oncancel=null;
+  d.innerHTML=UO.comparison({titulo:`Comparar ${P.ref} con ${C.ref}`,subtitulo:`Esto es lo que pasaría al fusionar. <b>${P.ref}</b> (provisional) queda anulado y <b>${C.ref}</b> conserva sus datos; solo se completan los vacíos de denominación, motivo y narrativa. ${pv('Q-05')}`,colA:P.ref+' (provisional)',colB:C.ref+' (real)',secciones:cmpDatos(P,C),
+    pieHtml:UA.button({label:'Cerrar',kind:'sec',type:'button',attrs:`onclick="this.closest('dialog').close()"`})+B('Fusionar','fusionarCmp','fusionar',`data-id="${pid}" data-k="${cid}"`)});
+  d.showModal()}
+
 function vPre(){
   return `<div class="card"><h2>Preregistros CERI <span class="small mut">(sin teléfono ni relator; solo procedentes con SPM)</span></h2>
   <p class="small">Caduca si ningún área le agrega una consecuencia: <b>${CADUCA_DIAS} días</b> <span class="b pendiente">VALOR DE EJEMPLO</span>${pv('Q-29')}. Las coordenadas UTM se convierten a latitud/longitud de forma aproximada; en producción lo hace PostGIS. Si la hora de arribo es igual a la de inicio, se importa vacía.</p>
@@ -549,7 +596,7 @@ function vConc(){
   <p class="small">Plataforma fusiona un provisional con el evento real: se reasignan los hijos, el provisional queda <i>anulado</i> con su evento canónico y queda en auditoría. Operación atómica. Quién y en cuánto tiempo ${pv('Q-05')}.</p>
   ${prov.length?`<div class="sc"><table class="rs"><tr><th>Provisional</th><th>Sugerencia</th><th>Fusionar en</th><th></th></tr>${prov.map(p=>{const d=duplicado(p);return `<tr><td data-l="Provisional"><b>${p.ref}</b> ${stB(p.estado)}<div class="small mut">${esc(p.origen.colonia||'sin colonia')} · ${p.origen.fecha_evento||'sin fecha'}</div></td>
    <td data-l="Sugerencia">${d?'Posible duplicado de '+d.ref:'—'}</td><td data-l="Fusionar en"><select id="f-${p.id}">${dest.map(x=>`<option value="${x.id}" ${d&&d.id===x.id?'selected':''}>${x.ref}</option>`).join('')}</select></td>
-   <td>${B('Fusionar','fusionar','fusionar',`data-id="${p.id}"`)}</td></tr>`}).join('')}</table></div>`:`<div class="vacio">${ic('inbox')}<p>No hay eventos provisionales por conciliar.</p></div>`}</div>`}
+   <td class="row">${UA.button({label:'Comparar',act:'comparar',kind:'sec',attrs:`data-id="${p.id}"`})}${B('Fusionar','fusionar','fusionar',`data-id="${p.id}"`)}</td></tr>`}).join('')}</table></div>`:`<div class="vacio">${ic('inbox')}<p>No hay eventos provisionales por conciliar.</p></div>`}</div>`}
 
 const SIM={S:'Sí',P:'Propuesta','?':'Por validar','-':'·'};
 function vPerm(){
@@ -620,6 +667,7 @@ function fusion(pid,cid){
   const cp=JSON.parse(JSON.stringify([P,C])),[p,c]=cp; // atómico: se opera sobre copias y luego se confirma
   Object.keys(COMP).forEach(k=>{c.comp[k].hijos.push(...p.comp[k].hijos);p.comp[k].hijos=[];if(c.comp[k].hijos.length)c.comp[k].estado='registrado';else if(p.comp[k].estado==='sin_novedad'&&c.comp[k].estado==='pendiente')c.comp[k].estado='sin_novedad'});
   p.agentes.forEach(a=>{if(!c.agentes.some(x=>x.id===a.id||(x.emp&&x.emp===a.emp)))c.agentes.push(a)});p.agentes=[];
+  ['denominacion','motivo'].forEach(k=>{if(!c.origen[k]&&p.origen[k])c.origen[k]=p.origen[k]});if(!c.narrativa&&p.narrativa)c.narrativa=p.narrativa;
   p.estado='anulado';p.canonico=c.id;p.version++;c.version++;
   S.eventos[S.eventos.indexOf(P)]=p;S.eventos[S.eventos.indexOf(C)]=c;
   aud(c,'FUSION','evento_fusion',`${p.ref} → ${c.ref}`);aud(p,'UPDATE','evento','anulado por fusión');
@@ -637,6 +685,26 @@ function desdePre(p){
   return {tipo_origen:'Llamada de emergencia / despacho CERI',medio_conocimiento:'CERI',folio_ceri:p.folio,motivo:(p.codigo&&motivoDe(p.codigo))||CAT.motivo.find(m=>m.includes(p.incidente.split(',')[0]))||p.incidente,
    fecha_evento:p.fecha.slice(0,10),hora_evento:p.fecha.slice(11),fecha_hora_conocimiento:p.fecha,fecha_hora_arribo:p.arribo&&p.arribo!==p.fecha?p.arribo:'',
    calle:p.calle,cruce_1:p.cruce,numero_exterior:p.nx,numero_interior:p.ni||'',colonia:p.colonia,codigo_postal:p.cp,referencia:p.referencia||'REFERENCIA FICTICIA',distrito:p.distrito,sector:p.sector,latitud:la,longitud:lo,fuente_geocodificacion:la===''?'':'Manual'}}
+
+/* ===== Mapa para ubicar el evento (Leaflet incluido en vendor/) ===== */
+let MAPA=null,MAPA_PEND=null;
+function cargarLeaflet(){return window.L?Promise.resolve():new Promise((ok,no)=>{const l=document.createElement('link');l.rel='stylesheet';l.href='vendor/leaflet.css';document.head.appendChild(l);const s=document.createElement('script');s.src='vendor/leaflet.js';s.onload=ok;s.onerror=()=>no(new Error('No se pudo cargar el mapa.'));document.head.appendChild(s)})}
+function montarMapa(){
+  const el=$('#mapa');if(!el)return;const e=ev();
+  cargarLeaflet().then(()=>{
+    if(!document.body.contains(el))return;
+    const o=e.origen,tiene=o.latitud&&o.longitud,c=tiene?[+o.latitud,+o.longitud]:[31.69,-106.42];
+    MAPA=L.map(el,{scrollWheelZoom:false}).setView(c,tiene?16:11);
+    let fallo=false;
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(MAPA).on('tileerror',()=>{if(fallo)return;fallo=true;const s=$('#mapa-estado');if(s)s.textContent='Sin conexión: el mapa necesita internet para dibujar las calles. Puedes capturar las coordenadas a mano en «Completar / editar origen».'});
+    const icon=L.divIcon({className:'mapa-pin',html:UA.mapPin(),iconSize:[20,20],iconAnchor:[10,20]}),g=$('#mapaGuardar');
+    if(g&&!g.disabled){g.dataset.listo='1';g.disabled=true}
+    let m=null;
+    const pon=ll=>{MAPA_PEND=[ll.lat,ll.lng];if(m)m.setLatLng(ll);else{m=L.marker(ll,{icon,draggable:true}).addTo(MAPA);m.on('dragend',()=>pon(m.getLatLng()))}
+      const s=$('#mapa-estado');if(s)s.textContent=`Punto nuevo: ${ll.lat.toFixed(6)}, ${ll.lng.toFixed(6)}. Pulsa «Guardar ubicación» para confirmarlo.`;if(g&&g.dataset.listo)g.disabled=false};
+    if(tiene){m=L.marker(c,{icon,draggable:true}).addTo(MAPA);m.on('dragend',()=>pon(m.getLatLng()))}
+    MAPA.on('click',x=>pon(x.latlng));MAPA_PEND=null;
+  }).catch(er=>{const s=$('#mapa-estado');if(s)s.textContent=er.message})}
 
 /* ===== Búsqueda global ===== */
 const sinAcento=s=>String(s??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
@@ -691,6 +759,8 @@ document.addEventListener('click',x=>{
   switch(a){
    case 'ficha':return go('ficha');
    case 'tab':tab=k;return render();
+   case 'mapaGuardar':{if(!MAPA_PEND)return;const [la,lo]=MAPA_PEND;return mut(e,['crearA','levantarB'],'Ubicación ajustada en el mapa',()=>{e.origen.latitud=+la.toFixed(6);e.origen.longitud=+lo.toFixed(6);e.origen.fuente_geocodificacion=CAT.fuente_geo[0];e.origen.punto_validado='Sí'})}
+   case 'instalar':{if(!window.__instalar)return;window.__instalar.prompt();window.__instalar=null;$('#instalar').hidden=true;return}
    case 'abrirRes':{$('#gres').hidden=true;$('#gq').value='';cur=id;view='det';tab=k||'resumen';const z=ev();seenVer=z?z.version:0;render();return scrollTo(0,0)}
    case 'comGuardar':return guardarComentario(false);
    case 'comBorrar':return guardarComentario(true);
@@ -727,6 +797,9 @@ document.addEventListener('click',x=>{
    case 'firma':{const ip=findH(e,id);return mut(e,'iphEditar','IPH firmado',()=>{if(!ip.d.tipo||!ip.d.fuero||!ip.d.autoridad_destino)throw new Error('No puede firmarse: Jurídico debe asignar tipo, fuero y autoridad destino.');ip.estado='firmado'},'iph')}
    case 'envia':{const ip=findH(e,id);return mut(e,'iphEditar','IPH enviado',()=>{ip.estado='enviado'},'iph')}
    case 'narra':return abrirForm({titulo:'Narrativa del evento',e,fields:[{k:'n',l:'Narrativa',t:'textarea'}],values:{n:e.narrativa||''},ok:o=>mut(e,['iphEditar','parte'],'Narrativa del evento',()=>{e.narrativa=o.n})});
+   case 'comparar':return abrirComparacion(id,$('#f-'+id).value);
+   case 'fusionarCmp':{$('#dlg').close();const P=S.eventos.find(z=>z.id===id),C=S.eventos.find(z=>z.id===k);
+     return confirmar('Fusionar eventos',`${P.ref} se fusionará en ${C.ref}: sus registros pasan al evento canónico y ${P.ref} queda anulado.`,'Fusionar',()=>fusion(id,k))}
    case 'fusionar':{const cid=$('#f-'+id).value,P=S.eventos.find(z=>z.id===id),C=S.eventos.find(z=>z.id===cid);
      return confirmar('Fusionar eventos',`${P.ref} se fusionará en ${C.ref}: sus registros pasan al evento canónico y ${P.ref} queda anulado.`,'Fusionar',()=>fusion(id,cid))}
    case 'cerrar':{const c=cierre(e).filter(z=>!z.ok);if(c.length)return toast('No se puede cerrar: '+c.map(z=>z.t).join('; '),1);
@@ -801,5 +874,8 @@ theme(THEME.scheme());
 try{const g=JSON.parse(localStorage.getItem('pimsy_estado3')||'null');if(g&&g.S){S=g.S;Object.assign(AGENTES_MONGO,g.AGENTES_MONGO)}else seed()}catch(x){seed()}
 try{const dd=localStorage.getItem('pimsy_dept');if(dd&&DEPTS[dd])dept=dd}catch(x){}
 SES=sesLoad();
+$('#instalar').innerHTML=ic('download');
+window.addEventListener('beforeinstallprompt',x=>{x.preventDefault();window.__instalar=x;$('#instalar').hidden=false});
+if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
 render();
 try{if(!localStorage.getItem('pimsy_dept'))setTimeout(()=>elegirRol(true),300);else if(localStorage.getItem('pimsy_tour')!=='1')setTimeout(()=>tour(0),400)}catch(x){}

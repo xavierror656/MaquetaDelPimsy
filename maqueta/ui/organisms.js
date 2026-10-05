@@ -58,6 +58,19 @@ UI.organisms.formDialog=({titulo,tagHtml='',aviso='',chips=[],camposHtml,okLabel
 UI.organisms.tourStep=({titulo,texto,pos,total,siguiente})=>
   `<h4>${esc(titulo)}</h4><p>${esc(texto)}</p><div class="row end"><span class="small mut grow">${pos} de ${total}</span>${A.button({label:'Omitir',act:'tourFin',kind:'sec'})}${A.button({label:siguiente,act:'tourSig',attrs:`data-k="${pos}"`})}</div>`;
 
+/* Tarjeta con mapa para ubicar el evento (el comportamiento lo monta app.js sobre #mapa) */
+UI.organisms.mapCard=({titulo,ayuda,botonesHtml,estado})=>
+  `<div class="card"><div class="row"><h3 style="margin:0">${esc(titulo)}</h3><span class="grow"></span>${botonesHtml}</div><p class="small mut">${ayuda}</p><div id="mapa" class="mapa" role="application" aria-label="Mapa para ubicar el evento"></div><p id="mapa-estado" class="small mut" aria-live="polite">${esc(estado)}</p></div>`;
+
+/* Tablero: cifras + gráficas */
+UI.organisms.dashboard=({cifras,graficasHtml,pieHtml=''})=>`<div class="stats">${cifras.map(M.statTile).join('')}</div><div class="charts">${graficasHtml}</div>${pieHtml}`;
+
+/* Comparación lado a lado (provisional contra evento real). secciones: [{titulo,col0,filas:[{etiqueta,a,b,estado,resultado}]}] */
+UI.organisms.comparison=({titulo,subtitulo,colA,colB,secciones,pieHtml})=>
+  `<form method="dialog"><div class="dh"><h3 id="dlgt">${esc(titulo)}</h3>${A.button({label:A.icon('x'),kind:'ghost',type:'button',attrs:'aria-label="Cerrar" onclick="this.closest(\'dialog\').close()"'})}</div>
+   <div class="pvb"><p class="small mut">${subtitulo}</p>${secciones.map(s=>`<h4 class="fsec">${esc(s.titulo)}</h4><div class="sc"><table><tr><th>${esc(s.col0)}</th><th>${esc(colA)}</th><th>${esc(colB)}</th><th>Qué pasará</th></tr>${s.filas.map(f=>`<tr><td>${esc(f.etiqueta)}</td><td>${esc(f.a)}</td><td>${esc(f.b)}</td><td>${A.badge(f.estado,esc(f.resultado))}</td></tr>`).join('')}</table></div>`).join('')}</div>
+   <div class="foot"><div class="row end">${pieHtml}</div></form>`;
+
 /* Resultados de la búsqueda global: items = [{tipo,titulo,detalle,act,attrs}] */
 UI.organisms.searchResults=({items,vacio})=>items.length
   ?`<ul class="gres-l">${items.map(i=>`<li><button type="button" class="mi sec" data-act="${esc(i.act)}" ${i.attrs||''}>${A.badge('sin_novedad',esc(i.tipo))} <b>${esc(i.titulo)}</b><span class="small mut">${esc(i.detalle)}</span></button></li>`).join('')}</ul>`

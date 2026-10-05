@@ -34,7 +34,7 @@ jobs:
 
       - name: Revisar que existan los archivos de la maqueta
         run: |
-          for f in index.html app.js esquema.js catalogos.js css/theme.css ui/atoms.js ui/molecules.js ui/organisms.js ui/theme.js DESIGN.md vendor/alpine.min.js; do
+          for f in index.html app.js esquema.js catalogos.js css/theme.css ui/atoms.js ui/molecules.js ui/organisms.js ui/theme.js DESIGN.md sw.js manifest.webmanifest icon.svg vendor/alpine.min.js vendor/leaflet.js vendor/leaflet.css vendor/xlsx.full.min.js; do
             test -f "maqueta/$f" || { echo "Falta maqueta/$f"; exit 1; }
           done
 
